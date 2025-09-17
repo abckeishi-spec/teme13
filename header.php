@@ -290,6 +290,12 @@ $popular_keywords = array(
                             class="clear-search-btn hidden">
                         <i class="fas fa-times"></i>
                     </button>
+                    <button type="button" 
+                            id="gi-voice-btn" data-source="header" data-legacy-id="voice-search" 
+                            class="gi-voice-btn" 
+                            title="音声検索">
+                        <i class="fas fa-microphone"></i>
+                    </button>
                 </div>
                 <button type="submit" 
                         id="gi-search-btn-unified" data-source="header" data-legacy-id="execute-search" 

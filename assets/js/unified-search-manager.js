@@ -23,6 +23,13 @@ class GIUnifiedSearchManager {
         this.eventListeners = new Map(); // イベントリスナー管理
         this.retryCount = 0;
         this.maxRetries = 3;
+        
+        // Phase 5: 音声検索とサジェスト機能の初期化
+        this.voiceRecognition = null;
+        this.isVoiceRecording = false;
+        this.suggestionHistory = [];
+        this.selectedSuggestionIndex = -1;
+        this.debouncedSuggestion = null;
     }
 
     // 初期化
@@ -46,12 +53,16 @@ class GIUnifiedSearchManager {
         // 初期状態設定
         this.setupInitialState();
         
+        // Phase 5: 音声検索とサジェスト機能の初期化
+        this.initVoiceSearch();
+        this.initSuggestions();
+        
         // 設定の統合フラグ更新
         if (this.config.integration) {
             this.config.integration.initialized = true;
         }
         
-        console.log('✅ 統合検索マネージャー初期化完了');
+        console.log('✅ 統合検索マネージャー初期化完了（Phase 5: 音声検索・サジェスト機能対応）');
         
         // 初期化完了イベント発火
         this.dispatchEvent('gi:manager:initialized', {
@@ -752,10 +763,16 @@ class GIUnifiedSearchManager {
             });
         }
 
-        // 検索入力 (Enter キー + リアルタイム検索)
+        // 検索入力 (Enter キー + リアルタイム検索 + キーボードナビゲーション)
         if (this.elements.searchInput) {
-            // Enterキーでの検索
-            this.addEventListener(this.elements.searchInput, 'keypress', (e) => {
+            // キーボードイベント（Enter, Arrow, Escape）
+            this.addEventListener(this.elements.searchInput, 'keydown', (e) => {
+                // サジェストのキーボードナビゲーションを優先
+                if (this.handleSuggestionKeyboard(e)) {
+                    return; // サジェストで処理された場合は終了
+                }
+                
+                // Enterキーでの検索
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     this.executeUnifiedSearch('keyboard');
@@ -763,22 +780,24 @@ class GIUnifiedSearchManager {
             });
 
             // リアルタイムサジェスト（入力中）
-            this.addEventListener(this.elements.searchInput, 'input', 
-                this.debounce((e) => {
-                    const query = e.target.value.trim();
-                    if (query.length >= 2) {
-                        this.showSuggestions(query);
-                    } else {
-                        this.hideSuggestions();
+            this.addEventListener(this.elements.searchInput, 'input', (e) => {
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    if (this.debouncedSuggestion) {
+                        this.debouncedSuggestion(query);
                     }
-                }, 300)
-            );
+                } else {
+                    this.hideSuggestions();
+                }
+            });
 
             // フォーカス時の処理
             this.addEventListener(this.elements.searchInput, 'focus', () => {
                 const query = this.elements.searchInput.value.trim();
                 if (query.length >= 2) {
-                    this.showSuggestions(query);
+                    if (this.debouncedSuggestion) {
+                        this.debouncedSuggestion(query);
+                    }
                 }
             });
 
@@ -1334,26 +1353,492 @@ class GIUnifiedSearchManager {
         console.log('🗑️ 統合検索マネージャー破棄完了');
     }
 
-    // サジェスト機能（Phase 5で詳細実装予定）
-    async showSuggestions(query) {
-        // 基本的なサジェスト表示（Phase 5で完全実装）
-        if (!this.elements.suggestionContainer) return;
-        
-        console.log('💡 サジェスト表示:', query);
-        // Phase 5で詳細実装予定
+    // =================================================================
+    // Phase 5: 音声検索とサジェスト機能 (完全実装版)
+    // =================================================================
+    
+    /**
+     * 音声検索機能の初期化
+     */
+    initVoiceSearch() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.warn('⚠️ 音声認識APIがサポートされていません');
+            if (this.elements.voiceButton) {
+                this.elements.voiceButton.style.display = 'none';
+            }
+            return false;
+        }
+
+        this.voiceRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        this.voiceRecognition.continuous = false;
+        this.voiceRecognition.interimResults = true;
+        this.voiceRecognition.lang = 'ja-JP';
+        this.voiceRecognition.maxAlternatives = 1;
+
+        this.voiceRecognition.onstart = () => {
+            console.log('🎤 音声認識開始');
+            this.handleVoiceStart();
+        };
+
+        this.voiceRecognition.onresult = (event) => {
+            this.handleVoiceResult(event);
+        };
+
+        this.voiceRecognition.onerror = (event) => {
+            this.handleVoiceError(event);
+        };
+
+        this.voiceRecognition.onend = () => {
+            this.handleVoiceEnd();
+        };
+
+        return true;
     }
 
-    hideSuggestions() {
-        if (this.elements.suggestionContainer) {
-            this.elements.suggestionContainer.classList.add('hidden');
+    /**
+     * 音声検索開始
+     */
+    startVoiceSearch() {
+        if (!this.voiceRecognition) {
+            if (!this.initVoiceSearch()) {
+                this.showNotification('音声検索に対応していません', 'error');
+                return;
+            }
+        }
+
+        if (this.isVoiceRecording) {
+            this.stopVoiceSearch();
+            return;
+        }
+
+        try {
+            this.isVoiceRecording = true;
+            this.voiceRecognition.start();
+            
+            // UI更新
+            if (this.elements.voiceButton) {
+                this.elements.voiceButton.classList.add('gi-voice-recording');
+                this.elements.voiceButton.innerHTML = '<i class="fas fa-stop"></i>';
+                this.elements.voiceButton.setAttribute('title', '音声認識停止');
+            }
+            
+            this.showNotification('音声入力中... 話してください', 'info');
+        } catch (error) {
+            console.error('音声認識開始エラー:', error);
+            this.handleVoiceError({ error: error.name });
         }
     }
 
-    // 音声検索（Phase 5で詳細実装予定）
-    startVoiceSearch() {
-        console.log('🎤 音声検索開始');
-        // Phase 5で詳細実装予定
-        this.showNotification('音声検索はPhase 5で実装予定です', 'info');
+    /**
+     * 音声検索停止
+     */
+    stopVoiceSearch() {
+        if (this.voiceRecognition && this.isVoiceRecording) {
+            this.voiceRecognition.stop();
+        }
+        this.isVoiceRecording = false;
+    }
+
+    /**
+     * 音声認識開始ハンドラー
+     */
+    handleVoiceStart() {
+        this.isVoiceRecording = true;
+        console.log('🎤 音声認識が開始されました');
+        
+        // ビジュアルフィードバック
+        if (this.elements.searchInput) {
+            this.elements.searchInput.setAttribute('placeholder', '音声入力中...');
+            this.elements.searchInput.classList.add('gi-voice-input-active');
+        }
+    }
+
+    /**
+     * 音声認識結果ハンドラー
+     */
+    handleVoiceResult(event) {
+        let transcript = '';
+        let isFinal = false;
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const result = event.results[i];
+            transcript += result[0].transcript;
+            if (result.isFinal) {
+                isFinal = true;
+            }
+        }
+
+        console.log('🎤 音声認識結果:', transcript, 'Final:', isFinal);
+
+        // 検索入力フィールドに結果を表示
+        if (this.elements.searchInput) {
+            this.elements.searchInput.value = transcript;
+            
+            // リアルタイムサジェスト表示
+            if (transcript.length > 1) {
+                this.debouncedSuggestion(transcript);
+            }
+        }
+
+        // 最終結果の場合は自動検索
+        if (isFinal && transcript.length > 1) {
+            setTimeout(() => {
+                this.executeUnifiedSearch('voice', { search: transcript });
+                this.showNotification(`"${transcript}" で検索しました`, 'success');
+            }, 500);
+        }
+    }
+
+    /**
+     * 音声認識エラーハンドラー
+     */
+    handleVoiceError(event) {
+        console.error('音声認識エラー:', event.error);
+        this.isVoiceRecording = false;
+        
+        let errorMessage = '音声認識エラーが発生しました';
+        switch (event.error) {
+            case 'no-speech':
+                errorMessage = '音声が検出されませんでした';
+                break;
+            case 'audio-capture':
+                errorMessage = 'マイクにアクセスできませんでした';
+                break;
+            case 'not-allowed':
+                errorMessage = 'マイクの使用が許可されていません';
+                break;
+            case 'network':
+                errorMessage = 'ネットワークエラーが発生しました';
+                break;
+        }
+        
+        this.showNotification(errorMessage, 'error');
+        this.resetVoiceUI();
+    }
+
+    /**
+     * 音声認識終了ハンドラー
+     */
+    handleVoiceEnd() {
+        console.log('🎤 音声認識が終了しました');
+        this.isVoiceRecording = false;
+        this.resetVoiceUI();
+    }
+
+    /**
+     * 音声UI リセット
+     */
+    resetVoiceUI() {
+        if (this.elements.voiceButton) {
+            this.elements.voiceButton.classList.remove('gi-voice-recording');
+            this.elements.voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            this.elements.voiceButton.setAttribute('title', '音声検索');
+        }
+        
+        if (this.elements.searchInput) {
+            this.elements.searchInput.setAttribute('placeholder', 'キーワードを入力してください');
+            this.elements.searchInput.classList.remove('gi-voice-input-active');
+        }
+    }
+
+    // =================================================================
+    // サジェスト機能 (完全実装版)
+    // =================================================================
+
+    /**
+     * サジェスト機能の初期化
+     */
+    initSuggestions() {
+        // デバウンス関数の作成
+        this.debouncedSuggestion = this.debounce(this.fetchSuggestions.bind(this), 300);
+        
+        // サジェスト履歴の初期化
+        this.suggestionHistory = JSON.parse(localStorage.getItem('gi_suggestion_history') || '[]');
+        
+        console.log('💡 サジェスト機能初期化完了');
+    }
+
+    /**
+     * サジェスト取得とキャッシュ
+     */
+    async fetchSuggestions(query) {
+        if (!query || query.length < 2) {
+            this.hideSuggestions();
+            return;
+        }
+
+        const cacheKey = `suggestion:${query}`;
+        
+        // キャッシュから取得
+        if (this.state.cache.has(cacheKey)) {
+            const cached = this.state.cache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 300000) { // 5分間有効
+                this.showSuggestions(cached.results, query);
+                return;
+            }
+        }
+
+        try {
+            console.log('💡 サジェスト取得:', query);
+            
+            const response = await fetch(gi_ajax.ajax_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'gi_get_search_suggestions',
+                    nonce: gi_ajax.nonce,
+                    query: query,
+                    limit: 8
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+                // キャッシュに保存
+                this.state.cache.set(cacheKey, {
+                    results: data.data,
+                    timestamp: Date.now()
+                });
+                
+                this.showSuggestions(data.data, query);
+            } else {
+                console.warn('サジェスト取得失敗:', data.data);
+                this.showHistoryBasedSuggestions(query);
+            }
+            
+        } catch (error) {
+            console.error('サジェスト取得エラー:', error);
+            this.showHistoryBasedSuggestions(query);
+        }
+    }
+
+    /**
+     * サジェスト表示
+     */
+    showSuggestions(suggestions, query) {
+        if (!this.elements.suggestionContainer) {
+            this.createSuggestionContainer();
+        }
+
+        if (!suggestions || suggestions.length === 0) {
+            this.hideSuggestions();
+            return;
+        }
+
+        console.log('💡 サジェスト表示:', suggestions.length + '件');
+
+        // サジェストHTML生成
+        let html = '<div class="gi-suggestion-header">候補</div>';
+        html += '<ul class="gi-suggestion-list">';
+        
+        suggestions.forEach((suggestion, index) => {
+            const highlightedText = this.highlightMatch(suggestion.text, query);
+            html += `
+                <li class="gi-suggestion-item" data-suggestion="${suggestion.text}" data-index="${index}">
+                    <i class="fas ${suggestion.type === 'history' ? 'fa-history' : 'fa-search'}"></i>
+                    <span class="suggestion-text">${highlightedText}</span>
+                    ${suggestion.count ? `<span class="suggestion-count">${suggestion.count}</span>` : ''}
+                </li>
+            `;
+        });
+        
+        html += '</ul>';
+
+        this.elements.suggestionContainer.innerHTML = html;
+        this.elements.suggestionContainer.classList.remove('hidden');
+        this.elements.suggestionContainer.classList.add('gi-suggestion-active');
+
+        // サジェストクリックイベント
+        this.bindSuggestionEvents();
+    }
+
+    /**
+     * 履歴ベースのサジェスト
+     */
+    showHistoryBasedSuggestions(query) {
+        const historyMatches = this.suggestionHistory
+            .filter(item => item.toLowerCase().includes(query.toLowerCase()))
+            .slice(0, 5)
+            .map(text => ({ text, type: 'history' }));
+
+        if (historyMatches.length > 0) {
+            this.showSuggestions(historyMatches, query);
+        } else {
+            this.hideSuggestions();
+        }
+    }
+
+    /**
+     * サジェストイベントバインド
+     */
+    bindSuggestionEvents() {
+        if (!this.elements.suggestionContainer) return;
+
+        const items = this.elements.suggestionContainer.querySelectorAll('.gi-suggestion-item');
+        items.forEach((item, index) => {
+            // マウスオーバー
+            item.addEventListener('mouseenter', () => {
+                this.clearSuggestionSelection();
+                item.classList.add('gi-suggestion-selected');
+                this.selectedSuggestionIndex = index;
+            });
+
+            // クリック
+            item.addEventListener('click', () => {
+                const text = item.getAttribute('data-suggestion');
+                this.applySuggestion(text);
+            });
+        });
+    }
+
+    /**
+     * サジェスト適用
+     */
+    applySuggestion(text) {
+        if (this.elements.searchInput) {
+            this.elements.searchInput.value = text;
+            this.elements.searchInput.focus();
+        }
+        
+        // 履歴に追加
+        this.addToSuggestionHistory(text);
+        
+        // サジェスト非表示
+        this.hideSuggestions();
+        
+        // 検索実行
+        setTimeout(() => {
+            this.executeUnifiedSearch('suggestion', { search: text });
+        }, 100);
+    }
+
+    /**
+     * サジェスト履歴管理
+     */
+    addToSuggestionHistory(text) {
+        if (!text || text.length < 2) return;
+        
+        // 重複削除
+        this.suggestionHistory = this.suggestionHistory.filter(item => item !== text);
+        
+        // 先頭に追加
+        this.suggestionHistory.unshift(text);
+        
+        // 最大50件まで
+        if (this.suggestionHistory.length > 50) {
+            this.suggestionHistory = this.suggestionHistory.slice(0, 50);
+        }
+        
+        // ローカルストレージに保存
+        localStorage.setItem('gi_suggestion_history', JSON.stringify(this.suggestionHistory));
+    }
+
+    /**
+     * サジェスト非表示
+     */
+    hideSuggestions() {
+        if (this.elements.suggestionContainer) {
+            this.elements.suggestionContainer.classList.add('hidden');
+            this.elements.suggestionContainer.classList.remove('gi-suggestion-active');
+        }
+        this.selectedSuggestionIndex = -1;
+    }
+
+    /**
+     * サジェストコンテナ作成
+     */
+    createSuggestionContainer() {
+        if (!this.elements.searchInput) return;
+
+        const container = document.createElement('div');
+        container.id = 'gi-suggestions-unified';
+        container.className = 'gi-suggestion-container hidden';
+        
+        // 検索入力の直後に挿入
+        this.elements.searchInput.parentNode.insertBefore(
+            container, 
+            this.elements.searchInput.nextSibling
+        );
+        
+        this.elements.suggestionContainer = container;
+    }
+
+    /**
+     * キーワードハイライト
+     */
+    highlightMatch(text, query) {
+        if (!query) return text;
+        
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    /**
+     * サジェスト選択クリア
+     */
+    clearSuggestionSelection() {
+        if (this.elements.suggestionContainer) {
+            const items = this.elements.suggestionContainer.querySelectorAll('.gi-suggestion-item');
+            items.forEach(item => item.classList.remove('gi-suggestion-selected'));
+        }
+    }
+
+    /**
+     * キーボードナビゲーション（サジェスト用）
+     */
+    handleSuggestionKeyboard(event) {
+        if (!this.elements.suggestionContainer || 
+            this.elements.suggestionContainer.classList.contains('hidden')) {
+            return false;
+        }
+
+        const items = this.elements.suggestionContainer.querySelectorAll('.gi-suggestion-item');
+        if (items.length === 0) return false;
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                this.selectedSuggestionIndex = (this.selectedSuggestionIndex + 1) % items.length;
+                this.updateSuggestionSelection(items);
+                return true;
+
+            case 'ArrowUp':
+                event.preventDefault();
+                this.selectedSuggestionIndex = this.selectedSuggestionIndex <= 0 
+                    ? items.length - 1 
+                    : this.selectedSuggestionIndex - 1;
+                this.updateSuggestionSelection(items);
+                return true;
+
+            case 'Enter':
+                if (this.selectedSuggestionIndex >= 0) {
+                    event.preventDefault();
+                    const selectedItem = items[this.selectedSuggestionIndex];
+                    const text = selectedItem.getAttribute('data-suggestion');
+                    this.applySuggestion(text);
+                    return true;
+                }
+                break;
+
+            case 'Escape':
+                this.hideSuggestions();
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * サジェスト選択更新
+     */
+    updateSuggestionSelection(items) {
+        this.clearSuggestionSelection();
+        if (this.selectedSuggestionIndex >= 0 && items[this.selectedSuggestionIndex]) {
+            items[this.selectedSuggestionIndex].classList.add('gi-suggestion-selected');
+        }
     }
 }
 

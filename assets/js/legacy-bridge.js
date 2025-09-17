@@ -191,7 +191,10 @@
                     version: '4.0.0-bridge',
                     checkCompatibility: this.checkCompatibility.bind(this),
                     listLegacyElements: this.listLegacyElements.bind(this),
-                    testBridge: this.testBridge.bind(this)
+                    testBridge: this.testBridge.bind(this),
+                    // Phase 5: 音声検索・サジェスト機能のテスト
+                    testVoiceSearch: this.testVoiceSearch.bind(this),
+                    testSuggestions: this.testSuggestions.bind(this)
                 };
             }
         },
@@ -303,6 +306,108 @@
             }));
 
             console.table(results);
+            return results;
+        },
+
+        /**
+         * 音声検索機能のテスト
+         */
+        testVoiceSearch: function() {
+            console.log('[Legacy Bridge] 音声検索機能テスト開始');
+            
+            const tests = [
+                {
+                    name: 'Web Speech API対応',
+                    test: () => 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window
+                },
+                {
+                    name: '音声検索ボタン存在',
+                    test: () => document.querySelector('#gi-voice-btn') !== null
+                },
+                {
+                    name: 'UnifiedSearchManager音声機能',
+                    test: () => window.UnifiedSearchManager && 
+                              typeof window.UnifiedSearchManager.startVoiceSearch === 'function'
+                },
+                {
+                    name: '音声認識オブジェクト初期化',
+                    test: () => window.UnifiedSearchManager && 
+                              window.UnifiedSearchManager.voiceRecognition !== null
+                }
+            ];
+
+            const results = tests.map(test => ({
+                name: test.name,
+                passed: test.test(),
+                timestamp: new Date().toISOString()
+            }));
+
+            console.table(results);
+            
+            // 実際の音声検索テスト（ユーザーの許可が必要）
+            if (results.every(r => r.passed)) {
+                console.log('[Voice Test] 全ての基本テストが通過しました');
+                console.log('[Voice Test] 実際の音声検索をテストするには、音声検索ボタンをクリックしてください');
+            }
+            
+            return results;
+        },
+
+        /**
+         * サジェスト機能のテスト
+         */
+        testSuggestions: function() {
+            console.log('[Legacy Bridge] サジェスト機能テスト開始');
+            
+            const tests = [
+                {
+                    name: 'サジェスト取得関数存在',
+                    test: () => window.UnifiedSearchManager && 
+                              typeof window.UnifiedSearchManager.fetchSuggestions === 'function'
+                },
+                {
+                    name: 'サジェストコンテナ作成機能',
+                    test: () => window.UnifiedSearchManager && 
+                              typeof window.UnifiedSearchManager.createSuggestionContainer === 'function'
+                },
+                {
+                    name: 'デバウンス関数設定',
+                    test: () => window.UnifiedSearchManager && 
+                              window.UnifiedSearchManager.debouncedSuggestion !== null
+                },
+                {
+                    name: 'サジェスト履歴機能',
+                    test: () => window.UnifiedSearchManager && 
+                              Array.isArray(window.UnifiedSearchManager.suggestionHistory)
+                }
+            ];
+
+            const results = tests.map(test => ({
+                name: test.name,
+                passed: test.test(),
+                timestamp: new Date().toISOString()
+            }));
+
+            console.table(results);
+            
+            // 実際のサジェストテスト
+            if (results.every(r => r.passed)) {
+                console.log('[Suggestion Test] 全ての基本テストが通過しました');
+                
+                // テスト用サジェスト実行
+                const searchInput = document.querySelector('#gi-search-input-unified');
+                if (searchInput && window.UnifiedSearchManager) {
+                    console.log('[Suggestion Test] テスト用サジェスト実行中...');
+                    searchInput.value = 'テスト';
+                    window.UnifiedSearchManager.debouncedSuggestion('テスト');
+                    
+                    setTimeout(() => {
+                        const suggestionContainer = document.querySelector('.gi-suggestion-container');
+                        console.log('[Suggestion Test] サジェストコンテナ:', suggestionContainer ? '表示' : '非表示');
+                    }, 1000);
+                }
+            }
+            
             return results;
         }
     };

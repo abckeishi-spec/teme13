@@ -45,7 +45,7 @@ window.GISearchConfig = {
         // その他の要素
         loadingIndicator: ['gi-loading', 'search-loading'],
         errorContainer: ['gi-error', 'search-error'],
-        suggestionContainer: ['gi-suggestions', 'search-suggestions'],
+        suggestionContainer: ['gi-suggestions', 'search-suggestions', 'gi-suggestions-unified'],
         voiceButton: ['gi-voice-btn', 'voice-search-btn', 'voice-search'],
         clearButton: ['gi-clear-btn', 'search-clear'],
         
@@ -205,6 +205,189 @@ window.GISearchConfig = {
         stats: 'gi_get_search_stats'
     }
 };
+
+// Phase 5: 音声検索・サジェスト機能のCSS（動的注入）
+window.GISearchConfig.injectPhase5Styles = function() {
+    if (document.getElementById('gi-phase5-styles')) return; // 既に注入済み
+    
+    const css = `
+    /* Phase 5: 音声検索機能スタイル */
+    .gi-voice-btn {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 8px;
+        box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+    }
+    
+    .gi-voice-btn:hover {
+        background: linear-gradient(135deg, #047857, #059669);
+        box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        transform: translateY(-1px);
+    }
+    
+    .gi-voice-btn.gi-voice-recording {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        animation: gi-voice-pulse 1s infinite;
+    }
+    
+    @keyframes gi-voice-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .gi-voice-input-active {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+    }
+    
+    /* Phase 5: サジェスト機能スタイル */
+    .gi-suggestion-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 4px;
+    }
+    
+    .gi-suggestion-container.hidden {
+        display: none;
+    }
+    
+    .gi-suggestion-container.gi-suggestion-active {
+        display: block;
+        animation: gi-suggestion-fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes gi-suggestion-fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .gi-suggestion-header {
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .gi-suggestion-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .gi-suggestion-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .gi-suggestion-item:hover,
+    .gi-suggestion-item.gi-suggestion-selected {
+        background-color: #f0f9ff;
+        color: #0369a1;
+    }
+    
+    .gi-suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .gi-suggestion-item i {
+        color: #9ca3af;
+        margin-right: 8px;
+        width: 14px;
+        font-size: 12px;
+    }
+    
+    .gi-suggestion-item:hover i,
+    .gi-suggestion-item.gi-suggestion-selected i {
+        color: #0369a1;
+    }
+    
+    .suggestion-text {
+        flex: 1;
+        font-size: 14px;
+    }
+    
+    .suggestion-text mark {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 1px 2px;
+        border-radius: 2px;
+    }
+    
+    .suggestion-count {
+        font-size: 12px;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+    
+    /* 検索入力エリアの相対位置設定 */
+    .search-form,
+    .gi-search-container,
+    .search-input-container {
+        position: relative;
+    }
+    
+    /* レスポンシブ対応 */
+    @media (max-width: 640px) {
+        .gi-suggestion-container {
+            left: -10px;
+            right: -10px;
+            margin-top: 2px;
+        }
+        
+        .gi-voice-btn {
+            width: 36px;
+            height: 36px;
+            margin-left: 6px;
+        }
+        
+        .gi-suggestion-item {
+            padding: 12px 16px;
+        }
+    }
+    `;
+    
+    const style = document.createElement('style');
+    style.id = 'gi-phase5-styles';
+    style.textContent = css;
+    document.head.appendChild(style);
+    
+    console.log('✨ Phase 5 スタイル注入完了');
+};
+
+// ページ読み込み時に自動でスタイル注入
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.GISearchConfig.injectPhase5Styles);
+} else {
+    window.GISearchConfig.injectPhase5Styles();
+}
 
 // 設定の凍結（変更防止）
 if (typeof Object.freeze === 'function') {

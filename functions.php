@@ -1485,71 +1485,226 @@ add_action('wp_ajax_toggle_favorite', 'gi_ajax_toggle_favorite');
 add_action('wp_ajax_nopriv_toggle_favorite', 'gi_ajax_toggle_favorite');
 
 /**
- * 検索サジェスト取得 - Phase 5対応
+ * 検索サジェスト取得 - Phase 5完全強化版
  */
 function gi_get_search_suggestions() {
+    // セキュリティ検証
     if (!wp_verify_nonce($_POST['nonce'] ?? '', 'gi_ajax_nonce')) {
-        wp_send_json_error('セキュリティエラー');
+        wp_send_json_error(array(
+            'message' => 'セキュリティエラー',
+            'code' => 'security_error'
+        ));
     }
 
-    $keyword = sanitize_text_field($_POST['keyword'] ?? '');
+    $query = sanitize_text_field($_POST['query'] ?? $_POST['keyword'] ?? '');
+    $limit = intval($_POST['limit'] ?? 8);
+    $limit = max(1, min(20, $limit)); // 1-20の範囲で制限
     
-    if (strlen($keyword) < 2) {
-        wp_send_json_success(array('suggestions' => array()));
+    if (strlen($query) < 2) {
+        wp_send_json_success(array());
     }
 
     $suggestions = array();
+    $query_lower = mb_strtolower($query, 'UTF-8');
     
-    // 1. 助成金タイトルから検索
-    $grant_suggestions = get_posts(array(
-        'post_type' => 'grant',
-        'posts_per_page' => 5,
-        's' => $keyword,
-        'fields' => 'ids'
-    ));
-    
-    foreach ($grant_suggestions as $post_id) {
-        $suggestions[] = array(
-            'type' => 'grant',
-            'text' => get_the_title($post_id),
-            'icon' => 'fa-coins',
-            'label' => '助成金'
+    try {
+        // 1. 助成金タイトルから高精度検索
+        $grant_query = new WP_Query(array(
+            'post_type' => 'grant',
+            'posts_per_page' => 6,
+            's' => $query,
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'orderby' => 'relevance',
+            'meta_query' => array(
+                'relation' => 'OR',
+                array(
+                    'key' => 'grant_amount',
+                    'compare' => 'EXISTS'
+                ),
+                array(
+                    'key' => 'grant_status',
+                    'value' => 'active',
+                    'compare' => '='
+                )
+            )
+        ));
+        
+        foreach ($grant_query->posts as $post_id) {
+            $title = get_the_title($post_id);
+            $amount = get_post_meta($post_id, 'grant_amount', true);
+            $status = get_post_meta($post_id, 'grant_status', true);
+            
+            $suggestions[] = array(
+                'type' => 'grant',
+                'text' => $title,
+                'icon' => 'fa-coins',
+                'label' => '助成金',
+                'meta' => array(
+                    'post_id' => $post_id,
+                    'amount' => $amount,
+                    'status' => $status
+                ),
+                'priority' => 10
+            );
+        }
+        
+        // 2. カテゴリからの部分一致検索
+        $categories = get_terms(array(
+            'taxonomy' => 'grant_category',
+            'search' => $query,
+            'number' => 4,
+            'orderby' => 'count',
+            'order' => 'DESC',
+            'hide_empty' => true
+        ));
+        
+        if (!is_wp_error($categories)) {
+            foreach ($categories as $category) {
+                $count = $category->count;
+                $suggestions[] = array(
+                    'type' => 'category',
+                    'text' => $category->name,
+                    'icon' => 'fa-folder',
+                    'label' => 'カテゴリ',
+                    'count' => $count,
+                    'meta' => array(
+                        'term_id' => $category->term_id,
+                        'taxonomy' => 'grant_category'
+                    ),
+                    'priority' => 8
+                );
+            }
+        }
+        
+        // 3. 都道府県からの検索
+        $prefectures = get_terms(array(
+            'taxonomy' => 'grant_prefecture',
+            'search' => $query,
+            'number' => 3,
+            'orderby' => 'count',
+            'order' => 'DESC',
+            'hide_empty' => true
+        ));
+        
+        if (!is_wp_error($prefectures)) {
+            foreach ($prefectures as $prefecture) {
+                $count = $prefecture->count;
+                $suggestions[] = array(
+                    'type' => 'prefecture',
+                    'text' => $prefecture->name,
+                    'icon' => 'fa-map-marker-alt',
+                    'label' => '地域',
+                    'count' => $count,
+                    'meta' => array(
+                        'term_id' => $prefecture->term_id,
+                        'taxonomy' => 'grant_prefecture'
+                    ),
+                    'priority' => 7
+                );
+            }
+        }
+        
+        // 4. 業界・分野からの検索
+        $industries = get_terms(array(
+            'taxonomy' => 'grant_industry',
+            'search' => $query,
+            'number' => 2,
+            'orderby' => 'count',
+            'order' => 'DESC',
+            'hide_empty' => true
+        ));
+        
+        if (!is_wp_error($industries)) {
+            foreach ($industries as $industry) {
+                $count = $industry->count;
+                $suggestions[] = array(
+                    'type' => 'industry',
+                    'text' => $industry->name,
+                    'icon' => 'fa-industry',
+                    'label' => '業界',
+                    'count' => $count,
+                    'meta' => array(
+                        'term_id' => $industry->term_id,
+                        'taxonomy' => 'grant_industry'
+                    ),
+                    'priority' => 6
+                );
+            }
+        }
+        
+        // 5. カスタムキーワード辞書からの検索（高頻度検索語）
+        $popular_keywords = array(
+            'スタートアップ', 'IT', 'DX', 'デジタル', '環境', 'エネルギー', 
+            '補助金', '創業', '新規事業', '設備投資', '研究開発', 'R&D',
+            '中小企業', '地方創生', 'SDGs', 'AI', 'IoT', '観光'
         );
+        
+        foreach ($popular_keywords as $keyword) {
+            if (mb_strpos(mb_strtolower($keyword, 'UTF-8'), $query_lower) !== false || 
+                mb_strpos($query_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
+                $suggestions[] = array(
+                    'type' => 'keyword',
+                    'text' => $keyword,
+                    'icon' => 'fa-tag',
+                    'label' => 'キーワード',
+                    'priority' => 5
+                );
+            }
+        }
+        
+        // 6. 金額範囲の提案
+        if (preg_match('/(\d+)万?円?/', $query, $matches)) {
+            $amount = intval($matches[1]);
+            if ($amount > 0) {
+                $suggestions[] = array(
+                    'type' => 'amount',
+                    'text' => $amount . '万円以下',
+                    'icon' => 'fa-yen-sign',
+                    'label' => '金額',
+                    'meta' => array('amount' => $amount),
+                    'priority' => 4
+                );
+            }
+        }
+        
+        // 優先度順でソート
+        usort($suggestions, function($a, $b) {
+            return ($b['priority'] ?? 0) - ($a['priority'] ?? 0);
+        });
+        
+        // 重複除去（テキストベース）
+        $unique_suggestions = array();
+        $seen_texts = array();
+        
+        foreach ($suggestions as $suggestion) {
+            $text_key = mb_strtolower($suggestion['text'], 'UTF-8');
+            if (!in_array($text_key, $seen_texts)) {
+                $seen_texts[] = $text_key;
+                $unique_suggestions[] = $suggestion;
+            }
+        }
+        
+        // 制限数まで切り詰め
+        $final_suggestions = array_slice($unique_suggestions, 0, $limit);
+        
+        // 統計情報の追加
+        $response_data = $final_suggestions;
+        
+        // デバッグ情報（WP_DEBUGが有効な場合のみ）
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[GI Suggestions] Query: ' . $query . ' | Results: ' . count($final_suggestions));
+        }
+        
+        wp_send_json_success($response_data);
+        
+    } catch (Exception $e) {
+        error_log('[GI Suggestions Error] ' . $e->getMessage());
+        wp_send_json_error(array(
+            'message' => 'サジェスト取得中にエラーが発生しました',
+            'code' => 'suggestion_error'
+        ));
     }
-    
-    // 2. カテゴリから検索
-    $categories = get_terms(array(
-        'taxonomy' => 'grant_category',
-        'search' => $keyword,
-        'number' => 3
-    ));
-    
-    foreach ($categories as $category) {
-        $suggestions[] = array(
-            'type' => 'category',
-            'text' => $category->name,
-            'icon' => 'fa-folder',
-            'label' => 'カテゴリ'
-        );
-    }
-    
-    // 3. 都道府県から検索
-    $prefectures = get_terms(array(
-        'taxonomy' => 'grant_prefecture',
-        'search' => $keyword,
-        'number' => 3
-    ));
-    
-    foreach ($prefectures as $prefecture) {
-        $suggestions[] = array(
-            'type' => 'prefecture',
-            'text' => $prefecture->name,
-            'icon' => 'fa-map-marker-alt',
-            'label' => '地域'
-        );
-    }
-    
-    wp_send_json_success(array('suggestions' => array_slice($suggestions, 0, 10)));
 }
 add_action('wp_ajax_gi_get_search_suggestions', 'gi_get_search_suggestions');
 add_action('wp_ajax_nopriv_gi_get_search_suggestions', 'gi_get_search_suggestions');
