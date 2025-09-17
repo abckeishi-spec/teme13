@@ -1410,18 +1410,6 @@ function gi_get_status_badge_class($status) {
  */
 
 /**
- * 安全なmeta値取得
- */
-function gi_safe_get_meta($post_id, $key, $default = '') {
-    if (!$post_id || !get_post($post_id)) {
-        return $default;
-    }
-    
-    $value = get_post_meta($post_id, $key, true);
-    return $value !== '' ? $value : $default;
-}
-
-/**
  * キャッシュ機能付きカテゴリ取得
  */
 function gi_get_cached_categories() {
