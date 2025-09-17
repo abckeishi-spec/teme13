@@ -127,7 +127,7 @@ get_header();
                                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 <input 
                                     type="text" 
-                                    id="grant-search" 
+                                    id="gi-search-input-unified" data-legacy-id="grant-search" 
                                     class="search-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                                     placeholder="キーワード、業種、地域などで検索..."
                                     value="<?php echo esc_attr($search_params['search']); ?>"
@@ -135,14 +135,14 @@ get_header();
                                 >
                                 <div class="search-actions absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                                     <button 
-                                        id="search-clear" 
+                                        id="gi-clear-btn" data-legacy-id="search-clear" 
                                         class="search-action-btn w-8 h-8 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all <?php echo empty($search_params['search']) ? 'hidden' : ''; ?>"
                                         title="クリア"
                                     >
                                         <i class="fas fa-times text-sm"></i>
                                     </button>
                                     <button 
-                                        id="voice-search" 
+                                        id="gi-voice-btn" data-legacy-id="voice-search" 
                                         class="search-action-btn w-8 h-8 bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 rounded-full flex items-center justify-center transition-all"
                                         title="音声検索"
                                     >
@@ -151,7 +151,7 @@ get_header();
                                 </div>
                             </div>
                             <!-- 検索サジェスト -->
-                            <div id="search-suggestions" class="search-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto hidden">
+                            <div id="gi-suggestions" data-legacy-id="search-suggestions" class="search-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto hidden">
                                 <!-- 動的に生成 -->
                             </div>
                         </div>
@@ -159,7 +159,7 @@ get_header();
                     
                     <!-- 検索ボタン -->
                     <button 
-                        id="search-btn" 
+                        id="gi-search-btn-unified" data-legacy-id="search-btn" 
                         class="search-button px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-2xl transition-all transform hover:scale-105 shadow-lg"
                     >
                         <span class="btn-content flex items-center">
@@ -679,7 +679,7 @@ get_header();
 
                     <!-- 助成金リスト -->
                     <div id="grants-container" class="grants-container">
-                        <div id="grants-display" class="grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div id="gi-results-unified" data-legacy-id="grants-display" class="grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             <!-- 初期ローディング表示 -->
                             <div class="initial-loading col-span-full">
                                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

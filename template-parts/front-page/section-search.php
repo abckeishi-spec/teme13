@@ -228,17 +228,17 @@ $search_nonce = wp_create_nonce('gi_ajax_nonce');
                             <i class="fas fa-search search-icon-enhanced"></i>
                             <input 
                                 type="text" 
-                                id="search-keyword-input" 
+                                id="gi-search-input-unified" data-source="section" data-legacy-id="search-keyword-input" 
                                 name="keyword"
                                 class="search-input-enhanced"
                                 placeholder="キーワード、業種、地域などで検索..."
                                 autocomplete="off"
                             >
                             <div class="search-input-actions">
-                                <button type="button" id="clear-search-btn" class="action-btn hidden">
+                                <button type="button" id="gi-clear-btn" data-source="section" data-legacy-id="clear-search-btn" class="action-btn hidden">
                                     <i class="fas fa-times"></i>
                                 </button>
-                                <button type="button" id="voice-search-btn" class="action-btn">
+                                <button type="button" id="gi-voice-btn" data-source="section" data-legacy-id="voice-search-btn" class="action-btn">
                                     <i class="fas fa-microphone"></i>
                                 </button>
                                 <button type="button" id="ai-suggest-btn" class="action-btn">
@@ -246,7 +246,7 @@ $search_nonce = wp_create_nonce('gi_ajax_nonce');
                                 </button>
                             </div>
                         </div>
-                        <button type="submit" id="search-submit-btn" class="search-submit-enhanced">
+                        <button type="submit" id="gi-search-btn-unified" data-source="section" data-legacy-id="search-submit-btn" class="search-submit-enhanced">
                             <span class="btn-text">
                                 <i class="fas fa-search mr-2"></i>
                                 検索
@@ -453,7 +453,7 @@ $search_nonce = wp_create_nonce('gi_ajax_nonce');
         </div>
 
         <!-- 検索結果プレビュー（新機能） -->
-        <div id="search-results-preview" class="mt-12 hidden">
+        <div id="gi-results-unified" data-source="section" data-legacy-id="search-results-preview" class="mt-12 hidden">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
                 <!-- 結果ヘッダー -->
                 <div class="flex items-center justify-between mb-6">

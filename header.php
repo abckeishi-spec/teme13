@@ -279,20 +279,20 @@ $popular_keywords = array(
                 <div class="relative flex-1">
                     <input 
                         type="text" 
-                        id="search-keyword" 
+                        id="gi-search-input-unified" data-source="header" data-legacy-id="search-keyword" 
                         name="keyword"
                         class="search-input"
                         placeholder="キーワードで検索（例：IT導入補助金、ものづくり補助金）"
                         autocomplete="off"
                     >
                     <button type="button" 
-                            id="clear-search" 
+                            id="gi-clear-btn" data-source="header" data-legacy-id="clear-search" 
                             class="clear-search-btn hidden">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <button type="submit" 
-                        id="execute-search" 
+                        id="gi-search-btn-unified" data-source="header" data-legacy-id="execute-search" 
                         class="search-submit-btn">
                     <span class="btn-text">検索</span>
                     <span class="btn-loading hidden">
