@@ -647,20 +647,7 @@ $popular_keywords = array(
     color: #4b5563;
 }
 
-.search-submit-btn {
-    padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
-    font-weight: 600;
-    border-radius: 0.75rem;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-.search-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
+/* 統合検索システムのボタンスタイルはsearch-config.jsで管理されるため削除 */
 
 .popular-keywords {
     margin-bottom: 1.5rem;
@@ -936,9 +923,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 検索モーダル
         searchModal: document.getElementById('unified-search-modal'),
         searchForm: document.getElementById('unified-search-form'),
-        searchKeyword: document.getElementById('search-keyword'),
-        clearSearch: document.getElementById('clear-search'),
-        executeSearch: document.getElementById('execute-search'),
+        searchKeyword: document.getElementById('gi-search-input-unified') || document.getElementById('search-keyword'),
+        clearSearch: document.getElementById('gi-clear-btn') || document.getElementById('clear-search'),
+        executeSearch: document.getElementById('gi-search-btn-unified') || document.getElementById('execute-search'),
         resetFilters: document.getElementById('reset-filters'),
         closeSearchModal: document.getElementById('close-search-modal'),
         

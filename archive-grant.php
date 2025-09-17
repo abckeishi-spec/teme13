@@ -852,20 +852,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchBtn.addEventListener('click', () => self.handleSearch());
             }
 
-            // 検索入力
-            const searchInput = document.getElementById('grant-search');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        self.handleSearch();
-                    }
-                });
-
-                searchInput.addEventListener('input', (e) => {
-                    self.handleSearchInput(e);
-                });
-            }
+            // 統合検索システムが処理するため、このコードは不要
+            // 検索入力イベントは unified-search-manager.js で処理される
 
             // 検索クリア
             const searchClear = document.getElementById('search-clear');
@@ -977,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 検索処理
         handleSearch() {
-            const searchInput = document.getElementById('grant-search');
+            const searchInput = document.getElementById('gi-search-input-unified') || document.getElementById('grant-search');
             if (searchInput) {
                 this.state.filters.search = searchInput.value.trim();
                 this.state.currentPage = 1;
@@ -985,15 +973,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // 検索クリア
+        // 検索クリア（統合システム対応）
         clearSearch() {
-            const searchInput = document.getElementById('grant-search');
-            if (searchInput) {
-                searchInput.value = '';
-                this.state.filters.search = '';
-                document.getElementById('search-clear')?.classList.add('hidden');
-                this.state.currentPage = 1;
-                this.executeSearch();
+            // 統合検索システムのリセット機能を使用
+            if (window.unifiedSearch && typeof window.unifiedSearch.resetSearch === 'function') {
+                window.unifiedSearch.resetSearch();
+            } else {
+                // フォールバック
+                const searchInput = document.getElementById('gi-search-input-unified') || document.getElementById('grant-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                    this.state.filters.search = '';
+                    document.getElementById('gi-clear-btn')?.classList.add('hidden');
+                    this.state.currentPage = 1;
+                    this.executeSearch();
             }
         },
 
@@ -1239,7 +1232,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 sort: 'date_desc'
             };
             
-            document.getElementById('grant-search').value = '';
+            const searchInput = document.getElementById('gi-search-input-unified') || document.getElementById('grant-search');
+            if (searchInput) searchInput.value = '';
             document.getElementById('search-clear')?.classList.add('hidden');
             document.querySelectorAll('.filter-checkbox').forEach(cb => cb.checked = false);
             document.querySelectorAll('.filter-radio').forEach(rb => rb.checked = rb.value === '');
@@ -1517,7 +1511,8 @@ document.addEventListener('DOMContentLoaded', function() {
             switch(type) {
                 case 'search':
                     this.state.filters.search = '';
-                    document.getElementById('grant-search').value = '';
+                    const searchInput = document.getElementById('gi-search-input-unified') || document.getElementById('grant-search');
+            if (searchInput) searchInput.value = '';
                     document.getElementById('search-clear')?.classList.add('hidden');
                     break;
                 case 'category':

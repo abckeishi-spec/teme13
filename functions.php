@@ -1406,18 +1406,9 @@ function gi_get_status_badge_class($status) {
     return $classes[$status] ?? $classes['open'];
 }
 
-// 旧関数名での互換性維持（既存コードとの兼ね合い）
-function gi_ajax_load_grants() {
-    return gi_unified_search_handler();
-}
-
-// 新しいアクション名で登録
-add_action('wp_ajax_gi_unified_search', 'gi_unified_search_handler');
-add_action('wp_ajax_nopriv_gi_unified_search', 'gi_unified_search_handler');
-
-// 互換性のため既存のアクション名も残す
-add_action('wp_ajax_gi_load_grants', 'gi_unified_search_handler');
-add_action('wp_ajax_nopriv_gi_load_grants', 'gi_unified_search_handler');
+// 統合検索システム用アクション登録
+add_action('wp_ajax_gi_unified_search_handler', 'gi_unified_search_handler');
+add_action('wp_ajax_nopriv_gi_unified_search_handler', 'gi_unified_search_handler');
 ?>
 /**
  * AJAX - お気に入り機能
