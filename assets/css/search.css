@@ -1,0 +1,568 @@
+/**
+ * Grant Insight Perfect - Search Styles
+ * Version: 7.0.0
+ * 
+ * Search page and components specific styles
+ */
+
+/* ==========================================================================
+   Search Page Container
+   ========================================================================== */
+
+.search-page-container {
+    min-height: 60vh;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+.search-section {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* ==========================================================================
+   Search Form Components
+   ========================================================================== */
+
+/* Search Input Group */
+.search-input-group {
+    position: relative;
+}
+
+.search-input-group input[type="text"] {
+    padding-right: 7rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.search-input-group input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input-group button {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+/* Filter Groups */
+.filter-group {
+    margin-bottom: 1rem;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: white;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Filter Toggle (Mobile) */
+@media (max-width: 1023px) {
+    #search-filters {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    #search-filters.hidden {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   Search Results
+   ========================================================================== */
+
+.search-results-container {
+    min-height: 200px;
+}
+
+/* Grant Cards Grid */
+.grants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Grant Card */
+.grant-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.grant-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+}
+
+.grant-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.grant-card:hover::before {
+    opacity: 1;
+}
+
+/* Grant Card Header */
+.grant-header {
+    margin-bottom: 1rem;
+}
+
+.grant-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grant-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.grant-title a:hover {
+    color: #3b82f6;
+}
+
+/* Grant Meta */
+.grant-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.grant-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.grant-meta-item i {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Grant Status Badge */
+.grant-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.grant-status.status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.grant-status.status-upcoming {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.grant-status.status-closed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Grant Amount */
+.grant-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #059669;
+    margin: 1rem 0;
+}
+
+.grant-amount .amount-label {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6b7280;
+    margin-left: 0.25rem;
+}
+
+/* Grant Description */
+.grant-description {
+    font-size: 0.875rem;
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Grant Tags */
+.grant-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.grant-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    transition: background-color 0.2s ease;
+}
+
+.grant-tag:hover {
+    background-color: #e5e7eb;
+}
+
+/* Grant Actions */
+.grant-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.grant-action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.grant-action-btn.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.grant-action-btn.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.grant-action-btn.btn-secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.grant-action-btn.btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+/* Favorite Button */
+.favorite-btn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.favorite-btn:hover {
+    color: #ef4444;
+}
+
+.favorite-btn.is-favorited {
+    color: #ef4444;
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin: 3rem 0;
+}
+
+.pagination-wrapper {
+    display: inline-block;
+}
+
+.pagination-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination-item {
+    display: inline-block;
+}
+
+.pagination-item a,
+.pagination-item span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.pagination-item a:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.pagination-item .current {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.pagination-item .dots {
+    border: none;
+    background: none;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+#search-loading {
+    padding: 3rem 0;
+    text-align: center;
+}
+
+#search-loading.hidden {
+    display: none;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   No Results Message
+   ========================================================================== */
+
+.no-results-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    margin: 2rem 0;
+}
+
+.no-results-message h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.no-results-message p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+.no-results-suggestions {
+    text-align: left;
+    max-width: 32rem;
+    margin: 0 auto;
+}
+
+.no-results-suggestions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.no-results-suggestions li {
+    padding: 0.5rem 0;
+    color: #4b5563;
+    display: flex;
+    align-items: flex-start;
+}
+
+.no-results-suggestions li:before {
+    content: "✓";
+    color: #10b981;
+    font-weight: bold;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+/* Tablet and below */
+@media (max-width: 768px) {
+    .search-section {
+        padding: 1.5rem 1rem;
+    }
+    
+    .grants-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .grant-card {
+        padding: 1rem;
+    }
+    
+    .grant-meta {
+        font-size: 0.75rem;
+    }
+    
+    .pagination-item a,
+    .pagination-item span {
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .search-page-container {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+    }
+    
+    .search-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .grant-title {
+        font-size: 1rem;
+    }
+    
+    .grant-amount {
+        font-size: 1rem;
+    }
+    
+    .grant-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .grant-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+
+/* Focus styles */
+*:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

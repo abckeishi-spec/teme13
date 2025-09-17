@@ -98,41 +98,28 @@ add_action('after_setup_theme', 'gi_content_width', 0);
  * スクリプト・スタイルの読み込み
  */
 function gi_enqueue_scripts() {
-    // jQuery（最優先）
-    wp_deregister_script('jquery');
-    wp_register_script('jquery', 'https://code.jquery.com/jquery-3.7.1.min.js', array(), '3.7.1', true);
+    // jQueryはWP同梱を使用（上書きしない）
     wp_enqueue_script('jquery');
     
-    // スタイルシート
-    wp_enqueue_style('gi-google-fonts', 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap', array(), null);
-    wp_enqueue_style('gi-fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', array(), '6.4.0');
-    wp_enqueue_style('gi-swiper', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css', array(), '10.0.0');
-    wp_enqueue_style('gi-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), GI_THEME_VERSION);
-    wp_enqueue_style('gi-style', get_stylesheet_uri(), array('gi-main-style'), GI_THEME_VERSION);
+    // Styles
+    wp_enqueue_style('gi-google-fonts', 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap', [], null);
+    wp_enqueue_style('gi-fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', [], '6.4.0');
+    wp_enqueue_style('gi-main-style', get_template_directory_uri() . '/assets/css/main.css', [], GI_THEME_VERSION);
+    wp_enqueue_style('gi-search-style', get_template_directory_uri() . '/assets/css/search.css', ['gi-main-style'], GI_THEME_VERSION);
     
-    // インラインCSS
-    $custom_css = gi_get_custom_css();
-    wp_add_inline_style('gi-style', $custom_css);
     
-    // JavaScript読み込み順序（統合システム最適化版）
-    // 1. 基本ライブラリ
-    wp_enqueue_script('gi-swiper', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js', array(), '10.0.0', true);
+    // Inline CSS（テーマカスタマイザー由来）
+    wp_add_inline_style('gi-main-style', gi_get_custom_css());
     
-    // 2. 統合検索システムの設定とCSS注入（最優先）
-    wp_enqueue_script('gi-search-config', get_template_directory_uri() . '/assets/js/search-config.js', array('jquery'), GI_THEME_VERSION, true);
+    // Scripts（依存関係順序重要）
+    wp_enqueue_script('gi-swiper', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js', [], '10.0.0', true);
+    wp_enqueue_script('gi-search-config', get_template_directory_uri() . '/assets/js/search-config.js', ['jquery'], GI_THEME_VERSION, true);
+    wp_enqueue_script('gi-unified-search-manager', get_template_directory_uri() . '/assets/js/unified-search-manager.js', ['jquery', 'gi-search-config'], GI_THEME_VERSION, true);
+    wp_enqueue_script('gi-mobile-menu', get_template_directory_uri() . '/assets/js/mobile-menu.js', ['jquery'], GI_THEME_VERSION, true);
     
-    // 3. 統合検索マネージャー（コア機能 - 音声検索・サジェスト含む）
-    wp_enqueue_script('gi-unified-search-manager', get_template_directory_uri() . '/assets/js/unified-search-manager.js', array('jquery', 'gi-search-config'), GI_THEME_VERSION, true);
     
-    // 🗑️ 削除: legacy-bridge.js（統一IDシステムで不要）
-    // wp_enqueue_script('gi-legacy-bridge', ...); // 削除済み
-    
-    // 4. その他のテーマ機能（統合システム以外）
-    wp_enqueue_script('gi-mobile-menu', get_template_directory_uri() . '/assets/js/mobile-menu.js', array('jquery'), GI_THEME_VERSION, true);
-    // 🗑️ 削除: gi-main-js（統一システムに統合済み）
-    
-    // 統合検索システム用ローカライズ（Phase 4最適化版）
-    $gi_ajax_data = array(
+    // ローカライズ（存在するハンドルにのみ）
+    $gi_ajax_data = [
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('gi_ajax_nonce'),
         'homeUrl' => home_url('/'),
@@ -141,44 +128,20 @@ function gi_enqueue_scripts() {
         'isAdmin' => current_user_can('administrator'),
         'userId' => get_current_user_id(),
         'version' => GI_THEME_VERSION,
-        'debug' => WP_DEBUG,
+        'debug' => (bool) WP_DEBUG,
         'timeout' => GI_AJAX_TIMEOUT,
-        'unified_system' => true,  // 統合システムフラグ
-        'phase' => 'Phase4-ScriptOrder',  // 現在のフェーズ
-        'strings' => array(
+        'unified_system' => true,
+        'phase' => 'Phase4-ScriptOrder',
+        'strings' => [
+            'search_placeholder' => '助成金を検索...',
             'loading' => '読み込み中...',
             'error' => 'エラーが発生しました',
-            'noResults' => '結果が見つかりませんでした',
-            'confirm' => '実行してもよろしいですか？',
-            'success' => '正常に処理されました',
-            'failed' => '処理に失敗しました',
-            'retry' => '再試行',
-            'close' => '閉じる',
-            'search' => '検索',
-            'filter' => 'フィルター',
-            'reset' => 'リセット',
-            'apply' => '適用',
-            'cancel' => 'キャンセル',
-            'save' => '保存',
-            'delete' => '削除',
-            'edit' => '編集',
-            'view' => '表示',
-            'share' => '共有',
-            'download' => 'ダウンロード',
-            'print' => '印刷',
-            'favorite' => 'お気に入り',
-            'unfavorite' => 'お気に入り解除',
-            'legacyMode' => 'レガシーモード',
-            'bridgeActive' => 'ブリッジ有効',
-            'systemReady' => 'システム準備完了'
-        )
-    );
-    
-    // 各スクリプトに必要なローカライズを追加
+            'no_results' => '検索結果が見つかりませんでした',
+            'results_count' => '件の結果が見つかりました'
+        ]
+    ];
     wp_localize_script('gi-search-config', 'gi_ajax', $gi_ajax_data);
     wp_localize_script('gi-unified-search-manager', 'gi_ajax', $gi_ajax_data);
-    wp_localize_script('gi-legacy-bridge', 'gi_ajax', $gi_ajax_data);
-    wp_localize_script('gi-main-js', 'gi_ajax', $gi_ajax_data);
     
     // 条件付きスクリプト
     if (is_singular() && comments_open() && get_option('thread_comments')) {
@@ -249,29 +212,15 @@ function gi_get_custom_css() {
  * defer/async属性の追加
  */
 function gi_script_attributes($tag, $handle, $src) {
-    $defer_scripts = array(
-        'gi-main-js',
-        'gi-search-js',
-        'gi-filters-js',
-        'gi-archive-js',
-        'gi-homepage-js',
-        'gi-single-grant-js',
-        'gi-unified-search'
-    );
+    $defer = ['gi-unified-search-manager', 'gi-search-config', 'gi-mobile-menu', 'gi-swiper'];
+    $async = []; // 現在は使用しない
     
-    $async_scripts = array(
-        'gi-swiper',
-        'gi-fontawesome'
-    );
-    
-    if (in_array($handle, $defer_scripts)) {
+    if (in_array($handle, $defer, true)) {
         return str_replace('<script ', '<script defer ', $tag);
     }
-    
-    if (in_array($handle, $async_scripts)) {
+    if (in_array($handle, $async, true)) {
         return str_replace('<script ', '<script async ', $tag);
     }
-    
     return $tag;
 }
 add_filter('script_loader_tag', 'gi_script_attributes', 10, 3);
@@ -1076,40 +1025,24 @@ function gi_build_search_query_v2($params) {
         }
     }
 
-    // 金額フィルター
+    // amount（レンジ拡張）
     if (!empty($params['amount'])) {
         switch ($params['amount']) {
             case '0-100':
-                $meta_query[] = array(
-                    'key' => 'max_amount_numeric',
-                    'value' => 1000000,
-                    'compare' => '<=',
-                    'type' => 'NUMERIC'
-                );
+                $meta_query[] = ['key'=>'max_amount_numeric','value'=>1000000,'compare'=>'<=','type'=>'NUMERIC'];
                 break;
             case '100-500':
-                $meta_query[] = array(
-                    'key' => 'max_amount_numeric',
-                    'value' => array(1000001, 5000000),
-                    'compare' => 'BETWEEN',
-                    'type' => 'NUMERIC'
-                );
+                $meta_query[] = ['key'=>'max_amount_numeric','value'=>[1000001,5000000],'compare'=>'BETWEEN','type'=>'NUMERIC'];
                 break;
             case '500-1000':
-                $meta_query[] = array(
-                    'key' => 'max_amount_numeric',
-                    'value' => array(5000001, 10000000),
-                    'compare' => 'BETWEEN',
-                    'type' => 'NUMERIC'
-                );
+                $meta_query[] = ['key'=>'max_amount_numeric','value'=>[5000001,10000000],'compare'=>'BETWEEN','type'=>'NUMERIC'];
                 break;
-            case '1000+':
-                $meta_query[] = array(
-                    'key' => 'max_amount_numeric',
-                    'value' => 10000001,
-                    'compare' => '>=',
-                    'type' => 'NUMERIC'
-                );
+            case '1000-3000':
+                $meta_query[] = ['key'=>'max_amount_numeric','value'=>[10000001,30000000],'compare'=>'BETWEEN','type'=>'NUMERIC'];
+                break;
+            case '3000+':
+            case '1000+': // 後方互換
+                $meta_query[] = ['key'=>'max_amount_numeric','value'=>30000001,'compare'=>'>=','type'=>'NUMERIC'];
                 break;
         }
     }
@@ -1166,24 +1099,26 @@ function gi_build_search_query_v2($params) {
         $args['meta_query'] = $meta_query;
     }
 
-    // ソート設定
+    // ソートのマッピング
     switch ($params['orderby']) {
-        case 'title':
-            $args['orderby'] = 'title';
-            $args['order'] = $params['order'];
-            break;
-        case 'meta_value_num':
-            $args['orderby'] = 'meta_value_num';
-            $args['meta_key'] = 'max_amount_numeric';
-            $args['order'] = $params['order'];
-            break;
-        case 'menu_order':
-            $args['orderby'] = 'menu_order';
-            $args['order'] = $params['order'];
-            break;
+        case 'date_desc':
+            $args['orderby'] = 'date'; $args['order'] = 'DESC'; break;
+        case 'date_asc':
+            $args['orderby'] = 'date'; $args['order'] = 'ASC'; break;
+        case 'amount_desc':
+            $args['orderby'] = 'meta_value_num'; $args['meta_key'] = 'max_amount_numeric'; $args['order'] = 'DESC'; break;
+        case 'amount_asc':
+            $args['orderby'] = 'meta_value_num'; $args['meta_key'] = 'max_amount_numeric'; $args['order'] = 'ASC'; break;
+        case 'deadline_asc':
+            $args['orderby'] = 'meta_value_num'; $args['meta_key'] = 'deadline_date'; $args['order'] = 'ASC'; break;
+        case 'success_rate_desc':
+            $args['orderby'] = 'meta_value_num'; $args['meta_key'] = 'grant_success_rate'; $args['order'] = 'DESC'; break;
+        case 'popularity':
+            $args['orderby'] = 'meta_value_num'; $args['meta_key'] = 'grant_views'; $args['order'] = 'DESC'; break;
+        case 'title_asc':
+            $args['orderby'] = 'title'; $args['order'] = 'ASC'; break;
         default:
-            $args['orderby'] = 'date';
-            $args['order'] = $params['order'];
+            $args['orderby'] = 'date'; $args['order'] = 'DESC';
     }
 
     return apply_filters('gi_search_query_args', $args, $params);
@@ -1310,11 +1245,9 @@ function gi_format_grant_data_unified($post_id) {
  * 統合ページネーション生成
  */
 function gi_generate_pagination_unified($query, $params) {
-    if ($query->max_num_pages <= 1) {
-        return '';
-    }
-
-    $pagination_args = array(
+    if ($query->max_num_pages <= 1) return '';
+    
+    $links = paginate_links([
         'base' => add_query_arg('page', '%#%'),
         'format' => '',
         'current' => $params['page'],
@@ -1322,23 +1255,31 @@ function gi_generate_pagination_unified($query, $params) {
         'type' => 'array',
         'prev_text' => '<i class="fas fa-chevron-left"></i>',
         'next_text' => '<i class="fas fa-chevron-right"></i>',
-        'show_all' => false,
         'end_size' => 1,
         'mid_size' => 2
-    );
-
-    $pagination_links = paginate_links($pagination_args);
+    ]);
     
-    if (is_array($pagination_links)) {
-        $pagination_html = '<div class="gi-pagination flex flex-wrap gap-2 justify-center items-center">';
-        foreach ($pagination_links as $link) {
-            $pagination_html .= '<div class="pagination-item">' . $link . '</div>';
+    if (!is_array($links)) return '';
+    
+    $html = '<nav class="pagination-wrapper" role="navigation" aria-label="ページネーション"><ul class="pagination-list">';
+    
+    foreach ($links as $link) {
+        // hrefのpageパラメータ抽出
+        if (preg_match('/href="([^"]+)"/', $link, $m)) {
+            $url = $m[1];
+            $page = 1;
+            $qs = parse_url($url, PHP_URL_QUERY);
+            parse_str((string) $qs, $q);
+            if (!empty($q['page'])) $page = (int) $q['page'];
+            
+            // data-page を挿入
+            $link = preg_replace('/<a/', '<a data-page="' . esc_attr($page) . '" ', $link, 1);
         }
-        $pagination_html .= '</div>';
-        return $pagination_html;
+        $html .= '<li class="pagination-item">' . $link . '</li>';
     }
-
-    return '';
+    
+    $html .= '</ul></nav>';
+    return $html;
 }
 
 /**
@@ -2149,7 +2090,7 @@ add_action('init', 'gi_performance_optimizations');
  * クエリストリング削除関数
  */
 function gi_remove_query_strings($src) {
-    if (strpos($src, '?ver=') || strpos($src, '&ver=')) {
+    if (strpos($src, '?ver=') !== false || strpos($src, '&ver=') !== false) {
         $src = remove_query_arg('ver', $src);
     }
     return $src;
