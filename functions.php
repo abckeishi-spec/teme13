@@ -114,27 +114,22 @@ function gi_enqueue_scripts() {
     $custom_css = gi_get_custom_css();
     wp_add_inline_style('gi-style', $custom_css);
     
-    // JavaScript読み込み順序（Phase 4統合システム）
+    // JavaScript読み込み順序（統合システム最適化版）
     // 1. 基本ライブラリ
     wp_enqueue_script('gi-swiper', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js', array(), '10.0.0', true);
     
-    // 2. 統合検索システムの設定（最重要）
+    // 2. 統合検索システムの設定とCSS注入（最優先）
     wp_enqueue_script('gi-search-config', get_template_directory_uri() . '/assets/js/search-config.js', array('jquery'), GI_THEME_VERSION, true);
     
-    // 3. 統合検索マネージャー（コア機能）
+    // 3. 統合検索マネージャー（コア機能 - 音声検索・サジェスト含む）
     wp_enqueue_script('gi-unified-search-manager', get_template_directory_uri() . '/assets/js/unified-search-manager.js', array('jquery', 'gi-search-config'), GI_THEME_VERSION, true);
     
-    // 4. レガシー互換性ブリッジ
+    // 4. レガシー互換性ブリッジ（テスト・デバッグ機能含む）
     wp_enqueue_script('gi-legacy-bridge', get_template_directory_uri() . '/assets/js/legacy-bridge.js', array('jquery', 'gi-search-config', 'gi-unified-search-manager'), GI_THEME_VERSION, true);
     
-    // 5. その他のメインJavaScript（統合システム対応版）
-    wp_enqueue_script('gi-main-js', get_template_directory_uri() . '/assets/js/main.js', array('jquery', 'gi-legacy-bridge'), GI_THEME_VERSION, true);
+    // 5. その他のテーマ機能
+    wp_enqueue_script('gi-main-js', get_template_directory_uri() . '/assets/js/main.js', array('jquery'), GI_THEME_VERSION, true);
     wp_enqueue_script('gi-mobile-menu', get_template_directory_uri() . '/assets/js/mobile-menu.js', array('jquery'), GI_THEME_VERSION, true);
-    
-    // 注意：従来のsearch.js、filters.js、unified-search.jsは統合システムにより不要となったためコメントアウト
-    // wp_enqueue_script('gi-search-js', get_template_directory_uri() . '/assets/js/search.js', array('gi-main-js'), GI_THEME_VERSION, true);
-    // wp_enqueue_script('gi-filters-js', get_template_directory_uri() . '/assets/js/filters.js', array('gi-main-js'), GI_THEME_VERSION, true);
-    // wp_enqueue_script('gi-unified-search', get_template_directory_uri() . '/assets/js/unified-search.js', array('jquery', 'gi-main-js'), GI_THEME_VERSION, true);
     
     // 統合検索システム用ローカライズ（Phase 4最適化版）
     $gi_ajax_data = array(
@@ -839,8 +834,11 @@ add_action('wp_head', 'gi_update_post_views');
  * Phase 3: バックエンドAJAX統一対応
  */
 function gi_unified_search_handler() {
+    $start_time = microtime(true); // パフォーマンス測定開始
+    
     // セキュリティチェック
     if (!wp_verify_nonce($_POST['nonce'] ?? '', 'gi_ajax_nonce')) {
+        gi_log_error('Security check failed', $_POST);
         wp_send_json_error(array(
             'message' => 'セキュリティチェックに失敗しました',
             'code' => 'SECURITY_ERROR'
@@ -884,6 +882,9 @@ function gi_unified_search_handler() {
         // 統計情報
         $stats = gi_calculate_search_stats($grants, $total_found);
         
+        // パフォーマンス測定
+        $execution_time = gi_measure_search_performance($start_time, $params);
+        
         // 成功レスポンス
         wp_send_json_success(array(
             'grants' => $grants,
@@ -894,6 +895,11 @@ function gi_unified_search_handler() {
             'pagination' => $pagination,
             'stats' => $stats,
             'query' => $params,
+            'performance' => array(
+                'execution_time' => round($execution_time, 3),
+                'db_queries' => get_num_queries(),
+                'memory_usage' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . 'MB'
+            ),
             'debug_info' => WP_DEBUG ? array(
                 'sql' => $search_query->request,
                 'query_vars' => $search_query->query_vars
@@ -1404,6 +1410,101 @@ function gi_get_status_badge_class($status) {
     );
     
     return $classes[$status] ?? $classes['open'];
+}
+
+/**
+ * パフォーマンス最適化とエラーハンドリング
+ */
+
+/**
+ * 安全なmeta値取得
+ */
+function gi_safe_get_meta($post_id, $key, $default = '') {
+    if (!$post_id || !get_post($post_id)) {
+        return $default;
+    }
+    
+    $value = get_post_meta($post_id, $key, true);
+    return $value !== '' ? $value : $default;
+}
+
+/**
+ * キャッシュ機能付きカテゴリ取得
+ */
+function gi_get_cached_categories() {
+    $cache_key = 'gi_categories_' . get_current_blog_id();
+    $categories = wp_cache_get($cache_key, 'gi_search');
+    
+    if (false === $categories) {
+        $categories = get_terms(array(
+            'taxonomy' => 'grant_category',
+            'hide_empty' => false,
+            'orderby' => 'count',
+            'order' => 'DESC'
+        ));
+        
+        if (!is_wp_error($categories)) {
+            wp_cache_set($cache_key, $categories, 'gi_search', HOUR_IN_SECONDS);
+        } else {
+            $categories = array();
+        }
+    }
+    
+    return $categories;
+}
+
+/**
+ * キャッシュ機能付き都道府県取得
+ */
+function gi_get_cached_prefectures() {
+    $cache_key = 'gi_prefectures_' . get_current_blog_id();
+    $prefectures = wp_cache_get($cache_key, 'gi_search');
+    
+    if (false === $prefectures) {
+        $prefectures = get_terms(array(
+            'taxonomy' => 'grant_prefecture',
+            'hide_empty' => false,
+            'orderby' => 'name',
+            'order' => 'ASC'
+        ));
+        
+        if (!is_wp_error($prefectures)) {
+            wp_cache_set($cache_key, $prefectures, 'gi_search', HOUR_IN_SECONDS);
+        } else {
+            $prefectures = array();
+        }
+    }
+    
+    return $prefectures;
+}
+
+/**
+ * エラーログ出力（デバッグ用）
+ */
+function gi_log_error($message, $context = array()) {
+    if (WP_DEBUG && WP_DEBUG_LOG) {
+        $log_message = '[Grant Insight] ' . $message;
+        if (!empty($context)) {
+            $log_message .= ' Context: ' . wp_json_encode($context);
+        }
+        error_log($log_message);
+    }
+}
+
+/**
+ * 検索パフォーマンス測定
+ */
+function gi_measure_search_performance($start_time, $params) {
+    $execution_time = microtime(true) - $start_time;
+    
+    if ($execution_time > 2.0) { // 2秒以上の場合は警告
+        gi_log_error("Slow search detected", array(
+            'execution_time' => $execution_time,
+            'params' => $params
+        ));
+    }
+    
+    return $execution_time;
 }
 
 // 統合検索システム用アクション登録

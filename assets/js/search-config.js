@@ -8,27 +8,30 @@
 window.GISearchConfig = {
     // 統一DOM要素ID
     elements: {
-        // 検索入力（優先度順）
+        // 検索入力（統一ID体系）
         searchInputs: [
-            'gi-search-input-unified',  // 新統一ID
-            'grant-search',             // archive用（既存）
-            'search-keyword-input',     // section用（既存）
-            'search-keyword'            // header用（既存）
+            'gi-search-input',          // 統一ID（推奨）
+            'gi-search-input-unified',  // 移行期互換
+            'grant-search',             // レガシー互換
+            'search-keyword-input',     // レガシー互換
+            'search-keyword'            // レガシー互換
         ],
         
         // 検索ボタン
         searchButtons: [
-            'gi-search-btn-unified',    // 新統一ID
-            'search-btn',               // archive用
-            'search-submit-btn',        // section用
-            'execute-search'            // header用
+            'gi-search-button',         // 統一ID（推奨）
+            'gi-search-btn-unified',    // 移行期互換
+            'search-btn',               // レガシー互換
+            'search-submit-btn',        // レガシー互換
+            'execute-search'            // レガシー互換
         ],
         
         // 結果表示
         resultsContainers: [
-            'gi-results-unified',       // 新統一ID
-            'grants-display',           // archive用
-            'search-results-preview'    // section用
+            'gi-search-results',        // 統一ID（推奨）
+            'gi-results-unified',       // 移行期互換
+            'grants-display',           // レガシー互換
+            'search-results-preview'    // レガシー互換
         ],
         
         // フィルター
@@ -42,12 +45,12 @@ window.GISearchConfig = {
             success_rate: ['filter-success-rate', 'gi-filter-success-rate']
         },
         
-        // その他の要素
-        loadingIndicator: ['gi-loading', 'search-loading'],
-        errorContainer: ['gi-error', 'search-error'],
-        suggestionContainer: ['gi-suggestions', 'search-suggestions', 'gi-suggestions-unified'],
-        voiceButton: ['gi-voice-btn', 'voice-search-btn', 'voice-search'],
-        clearButton: ['gi-clear-btn', 'search-clear'],
+        // その他の要素（統一ID体系）
+        loadingIndicator: ['gi-loading-indicator', 'gi-loading', 'search-loading'],
+        errorContainer: ['gi-error-container', 'gi-error', 'search-error'],
+        suggestionContainer: ['gi-suggestion-container', 'gi-suggestions', 'search-suggestions'],
+        voiceButton: ['gi-voice-button', 'gi-voice-btn', 'voice-search-btn', 'voice-search'],
+        clearButton: ['gi-clear-button', 'gi-clear-btn', 'search-clear'],
         
         // ページネーション
         pagination: ['gi-pagination', 'search-pagination'],
@@ -57,9 +60,9 @@ window.GISearchConfig = {
         filterToggle: ['gi-filter-toggle', 'filter-toggle-btn']
     },
     
-    // AJAX設定
+    // AJAX設定（統一されたエンドポイント名）
     ajax: {
-        action: 'gi_unified_search',
+        action: 'gi_unified_search_handler', // functions.phpのアクション名と完全一致
         timeout: 30000,
         retryLimit: 3,
         retryDelay: 1000
@@ -211,7 +214,53 @@ window.GISearchConfig.injectPhase5Styles = function() {
     if (document.getElementById('gi-phase5-styles')) return; // 既に注入済み
     
     const css = `
-    /* Phase 5: 音声検索機能スタイル */
+    /* 統合検索システム - 基本要素 */
+    .gi-search-input {
+        width: 100%;
+        padding: 12px 48px 12px 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .gi-search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .gi-search-button {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .gi-search-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .gi-search-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .gi-search-results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    /* 音声検索ボタン */
+    .gi-voice-button,
     .gi-voice-btn {
         background: linear-gradient(135deg, #059669, #10b981);
         color: white;
@@ -228,15 +277,39 @@ window.GISearchConfig.injectPhase5Styles = function() {
         box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
     }
     
+    .gi-voice-button:hover,
     .gi-voice-btn:hover {
         background: linear-gradient(135deg, #047857, #059669);
         box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
         transform: translateY(-1px);
     }
     
+    .gi-voice-button.gi-voice-recording,
     .gi-voice-btn.gi-voice-recording {
         background: linear-gradient(135deg, #dc2626, #ef4444);
         animation: gi-voice-pulse 1s infinite;
+    }
+    
+    /* クリアボタン */
+    .gi-clear-button,
+    .gi-clear-btn {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .gi-clear-button:hover,
+    .gi-clear-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
     }
     
     @keyframes gi-voice-pulse {

@@ -127,23 +127,29 @@ get_header();
                                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 <input 
                                     type="text" 
-                                    id="gi-search-input-unified" data-legacy-id="grant-search" 
-                                    class="search-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                                    id="gi-search-input" 
+                                    data-legacy-id="grant-search" 
+                                    data-unified-id="gi-search-input-unified"
+                                    class="gi-search-input search-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                                     placeholder="キーワード、業種、地域などで検索..."
                                     value="<?php echo esc_attr($search_params['search']); ?>"
                                     autocomplete="off"
                                 >
                                 <div class="search-actions absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                                     <button 
-                                        id="gi-clear-btn" data-legacy-id="search-clear" 
-                                        class="search-action-btn w-8 h-8 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all <?php echo empty($search_params['search']) ? 'hidden' : ''; ?>"
+                                        id="gi-clear-button" 
+                                        data-legacy-id="search-clear" 
+                                        data-unified-id="gi-clear-btn"
+                                        class="gi-clear-button search-action-btn w-8 h-8 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all <?php echo empty($search_params['search']) ? 'hidden' : ''; ?>"
                                         title="クリア"
                                     >
                                         <i class="fas fa-times text-sm"></i>
                                     </button>
                                     <button 
-                                        id="gi-voice-btn" data-legacy-id="voice-search" 
-                                        class="search-action-btn w-8 h-8 bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 rounded-full flex items-center justify-center transition-all"
+                                        id="gi-voice-button" 
+                                        data-legacy-id="voice-search" 
+                                        data-unified-id="gi-voice-btn"
+                                        class="gi-voice-button search-action-btn w-8 h-8 bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 rounded-full flex items-center justify-center transition-all"
                                         title="音声検索"
                                     >
                                         <i class="fas fa-microphone text-sm"></i>
@@ -159,7 +165,9 @@ get_header();
                     
                     <!-- 検索ボタン -->
                     <button 
-                        id="gi-search-btn-unified" data-legacy-id="search-btn" 
+                        id="gi-search-button" 
+                        data-legacy-id="search-btn" 
+                        data-unified-id="gi-search-btn-unified" 
                         class="search-button px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-2xl transition-all transform hover:scale-105 shadow-lg"
                     >
                         <span class="btn-content flex items-center">
@@ -679,7 +687,10 @@ get_header();
 
                     <!-- 助成金リスト -->
                     <div id="grants-container" class="grants-container">
-                        <div id="gi-results-unified" data-legacy-id="grants-display" class="grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div id="gi-search-results" 
+                             data-legacy-id="grants-display" 
+                             data-unified-id="gi-results-unified" 
+                             class="gi-search-results grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             <!-- 初期ローディング表示 -->
                             <div class="initial-loading col-span-full">
                                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -1077,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 結果表示
         displayResults(data) {
-            const container = document.getElementById('grants-display');
+            const container = document.getElementById('gi-search-results') || document.getElementById('grants-display');
             if (!container) return;
 
             this.state.totalResults = data.found_posts || 0;
@@ -1564,7 +1575,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // ローディング表示
         showLoading(show) {
             const loadingEl = document.getElementById('loading-indicator');
-            const grantsDisplay = document.getElementById('grants-display');
+            const grantsDisplay = document.getElementById('gi-search-results') || document.getElementById('grants-display');
             
             if (loadingEl) {
                 loadingEl.classList.toggle('hidden', !show);
@@ -1584,7 +1595,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // エラー表示
         showError(message) {
-            const container = document.getElementById('grants-display');
+            const container = document.getElementById('gi-search-results') || document.getElementById('grants-display');
             if (container) {
                 container.innerHTML = `
                     <div class="col-span-full bg-red-50 border border-red-200 rounded-xl p-8 text-center">
