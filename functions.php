@@ -823,10 +823,6 @@ add_action('wp_head', 'gi_update_post_views');
 // =============================================================================
 
 /**
- * AJAX - 助成金読み込み処理（シンプル版）
- */
-<?php
-/**
  * 統合AJAX検索処理 - 完全版
  * Phase 3: バックエンドAJAX統一対応
  */
@@ -1507,7 +1503,7 @@ function gi_measure_search_performance($start_time, $params) {
 // 統合検索システム用アクション登録
 add_action('wp_ajax_gi_unified_search_handler', 'gi_unified_search_handler');
 add_action('wp_ajax_nopriv_gi_unified_search_handler', 'gi_unified_search_handler');
-?>
+
 /**
  * AJAX - お気に入り機能
  */
@@ -2216,4 +2212,3 @@ if (WP_DEBUG) {
 }
 
 /* 助成金・補助金テーマ完全版 - 全機能実装済み */
-?>
