@@ -179,30 +179,27 @@ function gi_enqueue_scripts() {
     wp_localize_script('gi-unified-search-manager', 'gi_ajax', $gi_ajax_data);
     wp_localize_script('gi-legacy-bridge', 'gi_ajax', $gi_ajax_data);
     wp_localize_script('gi-main-js', 'gi_ajax', $gi_ajax_data);
-            'share' => '共有',
-            'download' => 'ダウンロード',
-            'print' => '印刷',
-            'favorite' => 'お気に入り',
-            'unfavorite' => 'お気に入り解除'
-        )
-    ));
     
     // 条件付きスクリプト
     if (is_singular() && comments_open() && get_option('thread_comments')) {
         wp_enqueue_script('comment-reply');
     }
     
+    // 注意：以下のJavaScriptファイルは統合システムにより不要
+    // 必要な機能は unified-search-manager.js で提供される
+    /*
     if (is_front_page()) {
         wp_enqueue_script('gi-homepage-js', get_template_directory_uri() . '/assets/js/homepage.js', array('gi-main-js', 'gi-swiper'), GI_THEME_VERSION, true);
     }
     
     if (is_post_type_archive('grant') || is_tax('grant_category') || is_tax('grant_prefecture')) {
-        wp_enqueue_script('gi-archive-js', get_template_directory_uri() . '/assets/js/archive.js', array('gi-main-js', 'gi-unified-search'), GI_THEME_VERSION, true);
+        wp_enqueue_script('gi-archive-js', get_template_directory_uri() . '/assets/js/archive.js', array('gi-main-js'), GI_THEME_VERSION, true);
     }
     
     if (is_singular('grant')) {
         wp_enqueue_script('gi-single-grant-js', get_template_directory_uri() . '/assets/js/single-grant.js', array('gi-main-js'), GI_THEME_VERSION, true);
     }
+    */
 }
 add_action('wp_enqueue_scripts', 'gi_enqueue_scripts');
 
