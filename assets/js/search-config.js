@@ -6,18 +6,12 @@
  * @package Grant_Insight_Perfect
  */
 window.GISearchConfig = {
-    // 統一DOM要素ID
+    // 統一DOM要素ID（仮想要素として機能）
     elements: {
-        // 🔥 統一検索入力（単一ID）
-        searchInput: 'gi-search-input-main',
-        
-        
-        // 🔥 統一検索ボタン（単一ID）
-        searchButton: 'gi-search-btn-main',
-        
-        
-        // 🔥 統一結果表示（単一ID）
-        resultsContainer: 'gi-results-main',
+        // 🔥 統一メインID（仮想要素として機能）
+        searchInput: 'gi-search-input-unified-main',
+        searchButton: 'gi-search-btn-unified-main',
+        resultsContainer: 'gi-results-unified-main',
         
         // フィルター
         filters: {
@@ -30,19 +24,15 @@ window.GISearchConfig = {
             success_rate: ['filter-success-rate', 'gi-filter-success-rate']
         },
         
-        // 🔥 統一その他要素（単一ID）
-        loadingIndicator: 'gi-loading-main',
-        errorContainer: 'gi-error-main',
-        suggestionContainer: 'gi-suggestions-main',
-        voiceButton: 'gi-voice-btn-main',
-        clearButton: 'gi-clear-btn-main',
-        
-        // 🔥 統一ページネーション（単一ID）
-        pagination: 'gi-pagination-main',
-        
-        // 🔥 統一フィルターパネル（単一ID）
-        filterPanel: 'gi-filter-panel-main',
-        filterToggle: 'gi-filter-toggle-main'
+        // 🔥 統一メインID（仮想要素として機能）
+        suggestionContainer: 'gi-suggestions-unified-main',
+        voiceButton: 'gi-voice-btn-unified-main',
+        clearButton: 'gi-clear-btn-unified-main',
+        loadingIndicator: 'gi-loading-unified-main',
+        errorContainer: 'gi-error-unified-main',
+        pagination: 'gi-pagination-unified-main',
+        filterPanel: 'gi-filter-panel-unified-main',
+        filterToggle: 'gi-filter-toggle-unified-main'
     },
     
     // AJAX設定（統一されたエンドポイント名）
@@ -440,11 +430,36 @@ window.GISearchConfig.injectPhase5Styles = function() {
     console.log('✨ Phase 5 スタイル注入完了');
 };
 
-// ページ読み込み時に自動でスタイル注入
+// スタイル注入状態管理
+let stylesInjected = false;
+
+window.GISearchConfig.ensureStylesInjected = function() {
+    if (stylesInjected) return;
+    
+    // 既存のスタイルがあるかチェック
+    if (document.getElementById('gi-phase5-styles')) {
+        stylesInjected = true;
+        return;
+    }
+    
+    try {
+        window.GISearchConfig.injectPhase5Styles();
+        stylesInjected = true;
+        console.log('✨ 統一スタイル注入完了');
+    } catch (error) {
+        console.error('❌ スタイル注入エラー:', error);
+    }
+};
+
+// 安全な初期化
+function safeInitStyles() {
+    window.GISearchConfig.ensureStylesInjected();
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.GISearchConfig.injectPhase5Styles);
+    document.addEventListener('DOMContentLoaded', safeInitStyles, { once: true });
 } else {
-    window.GISearchConfig.injectPhase5Styles();
+    safeInitStyles();
 }
 
 // 設定の凍結（変更防止）

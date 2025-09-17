@@ -1488,13 +1488,11 @@ function gi_measure_search_performance($start_time, $params) {
     return $execution_time;
 }
 
-// 統合検索システム用アクション登録（統一命名）
+// 統合検索システム用アクション登録（統一アクション名のみ）
 add_action('wp_ajax_gi_unified_search', 'gi_unified_search_handler');
 add_action('wp_ajax_nopriv_gi_unified_search', 'gi_unified_search_handler');
 
-// 🗑️ 旧名称との互換性維持（段階的移行用）
-add_action('wp_ajax_gi_unified_search_handler', 'gi_unified_search_handler');
-add_action('wp_ajax_nopriv_gi_unified_search_handler', 'gi_unified_search_handler');
+// レガシーアクション名は削除（gi_load_grants等は使用しない）
 
 /**
  * AJAX - お気に入り機能
@@ -1554,12 +1552,9 @@ function gi_ajax_toggle_favorite() {
         'message' => $action === 'added' ? 'お気に入りに追加しました' : 'お気に入りから削除しました'
     ));
 }
-// 統一されたお気に入りアクション名
+// 統一されたお気に入りアクション名のみ
 add_action('wp_ajax_gi_toggle_favorite', 'gi_ajax_toggle_favorite');
 add_action('wp_ajax_nopriv_gi_toggle_favorite', 'gi_ajax_toggle_favorite');
-// 互換性維持用
-add_action('wp_ajax_toggle_favorite', 'gi_ajax_toggle_favorite');
-add_action('wp_ajax_nopriv_toggle_favorite', 'gi_ajax_toggle_favorite');
 
 /**
  * 検索サジェスト取得 - Phase 5完全強化版

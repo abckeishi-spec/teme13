@@ -277,33 +277,36 @@ $popular_keywords = array(
             <!-- メイン検索 -->
             <div class="search-input-group">
                 <div class="relative flex-1">
-                    <!-- 🔥 統一検索入力（単一ID） -->
+                    <!-- 🔥 ヘッダー検索入力（統一ターゲット属性付き） -->
                     <input 
                         type="text" 
-                        id="gi-search-input-main" 
+                        id="gi-search-input-header" 
+                        data-unified-target="gi-search-input-unified-main"
                         name="keyword"
                         class="gi-search-input search-input"
                         placeholder="キーワードで検索（例：IT導入補助金、ものづくり補助金）"
                         autocomplete="off"
                     >
-                    <!-- 🔥 統一クリアボタン -->
+                    <!-- 🔥 ヘッダークリアボタン（統一ターゲット属性付き） -->
                     <button type="button" 
-                            id="gi-clear-btn-main"
-                            data-unified-id="gi-clear-btn" 
+                            id="gi-clear-btn-header"
+                            data-unified-target="gi-clear-btn-unified-main" 
                             class="gi-clear-button clear-search-btn hidden">
                         <i class="fas fa-times"></i>
                     </button>
-                    <!-- 🔥 統一音声ボタン -->
+                    <!-- 🔥 ヘッダー音声ボタン（統一ターゲット属性付き） -->
                     <button type="button" 
-                            id="gi-voice-btn-main" 
+                            id="gi-voice-btn-header" 
+                            data-unified-target="gi-voice-btn-unified-main"
                             class="gi-voice-button" 
                             title="音声検索">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
-                <!-- 🔥 統一検索ボタン -->
+                <!-- 🔥 ヘッダー検索ボタン（統一ターゲット属性付き） -->
                 <button type="submit" 
-                        id="gi-search-btn-main" 
+                        id="gi-search-btn-header" 
+                        data-unified-target="gi-search-btn-unified-main"
                         class="search-submit-btn">
                     <span class="btn-text">検索</span>
                     <span class="btn-loading hidden">
@@ -312,8 +315,10 @@ $popular_keywords = array(
                 </button>
             </div>
             
-            <!-- 🔥 統一サジェスト表示 -->
-            <div id="gi-suggestions-main" class="search-suggestions hidden">
+            <!-- 🔥 ヘッダーサジェスト表示（統一ターゲット属性付き） -->
+            <div id="gi-suggestions-header" 
+                 data-unified-target="gi-suggestions-unified-main"
+                 class="search-suggestions hidden">
                 <!-- 動的生成 -->
             </div>
 

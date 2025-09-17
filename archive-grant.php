@@ -125,10 +125,11 @@ get_header();
                         <div class="search-input-group relative">
                             <div class="search-input-wrapper relative">
                                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                <!-- 🔥 統一検索入力（単一ID） -->
+                                <!-- 🔥 アーカイブ検索入力（統一ターゲット属性付き） -->
                                 <input 
                                     type="text" 
-                                    id="gi-search-input-main"
+                                    id="gi-search-input-archive"
+                                    data-unified-target="gi-search-input-unified-main"
                                     class="gi-search-input search-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                                     placeholder="キーワード、業種、地域などで検索..."
                                     value="<?php echo esc_attr($search_params['search']); ?>"
@@ -136,18 +137,16 @@ get_header();
                                 >
                                 <div class="search-actions absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                                     <button 
-                                        id="gi-clear-button" 
-                                        data-legacy-id="search-clear" 
-                                        data-unified-id="gi-clear-btn"
+                                        id="gi-clear-btn-archive" 
+                                        data-unified-target="gi-clear-btn-unified-main"
                                         class="gi-clear-button search-action-btn w-8 h-8 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-full flex items-center justify-center transition-all <?php echo empty($search_params['search']) ? 'hidden' : ''; ?>"
                                         title="クリア"
                                     >
                                         <i class="fas fa-times text-sm"></i>
                                     </button>
                                     <button 
-                                        id="gi-voice-button" 
-                                        data-legacy-id="voice-search" 
-                                        data-unified-id="gi-voice-btn"
+                                        id="gi-voice-btn-archive" 
+                                        data-unified-target="gi-voice-btn-unified-main"
                                         class="gi-voice-button search-action-btn w-8 h-8 bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 rounded-full flex items-center justify-center transition-all"
                                         title="音声検索"
                                     >
@@ -155,18 +154,19 @@ get_header();
                                     </button>
                                 </div>
                             </div>
-                            <!-- 検索サジェスト -->
-                            <div id="gi-suggestions" data-legacy-id="search-suggestions" class="search-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto hidden">
+                            <!-- アーカイブ検索サジェスト（統一ターゲット属性付き） -->
+                            <div id="gi-suggestions-archive" 
+                                 data-unified-target="gi-suggestions-unified-main"
+                                 class="search-suggestions absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto hidden">
                                 <!-- 動的に生成 -->
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 検索ボタン -->
+                    <!-- アーカイブ検索ボタン（統一ターゲット属性付き） -->
                     <button 
-                        id="gi-search-button" 
-                        data-legacy-id="search-btn" 
-                        data-unified-id="gi-search-btn-unified" 
+                        id="gi-search-btn-archive" 
+                        data-unified-target="gi-search-btn-unified-main"
                         class="search-button px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-2xl transition-all transform hover:scale-105 shadow-lg"
                     >
                         <span class="btn-content flex items-center">
@@ -686,8 +686,9 @@ get_header();
 
                     <!-- 助成金リスト -->
                     <div id="grants-container" class="grants-container">
-                        <!-- 🔥 統一結果表示（単一ID） -->
-                        <div id="gi-results-main"
+                        <!-- 🔥 アーカイブ結果表示（統一ターゲット属性付き） -->
+                        <div id="gi-results-archive"
+                             data-unified-target="gi-results-unified-main"
                              class="gi-search-results grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             <!-- 初期ローディング表示 -->
                             <div class="initial-loading col-span-full">
@@ -790,55 +791,226 @@ window.giSearchConfig = {
 document.addEventListener('DOMContentLoaded', function() {
     'use strict';
 
-    console.log('📄 Grant Archive - 初期化開始');
+    console.log('📄 Grant Archive - 統合検索システム委譲');
 
     // 初期パラメータを取得
     const archiveElement = document.getElementById('grant-archive-page');
     const initialParams = archiveElement ? JSON.parse(archiveElement.dataset.searchParams) : {};
 
-    // アーカイブページ管理システム
-    const ArchiveManager = {
-        // 状態管理
-        state: {
-            isLoading: false,
-            currentView: initialParams.view || 'grid',
-            currentPage: initialParams.page || 1,
-            totalPages: 1,
-            totalResults: 0,
-            selectedGrants: [],
-            compareMode: false,
-            filters: {
-                search: initialParams.search || '',
-                categories: initialParams.category ? [initialParams.category] : [],
-                prefectures: initialParams.prefecture ? [initialParams.prefecture] : [],
-                industries: initialParams.industry ? [initialParams.industry] : [],
-                amount: initialParams.amount || '',
-                status: initialParams.status ? [initialParams.status] : [],
-                difficulty: initialParams.difficulty ? [initialParams.difficulty] : [],
-                success_rate: initialParams.success_rate ? [initialParams.success_rate] : [],
-                sort: initialParams.orderby || 'date_desc'
-            },
-            savedSearches: [],
-            perPage: 12
-        },
-
-        // 初期化
-        init() {
-            console.log('🔄 アーカイブマネージャー初期化');
+    // 統合検索システムとの連携
+    function waitForUnifiedSystem(maxAttempts = 50) {
+        let attempts = 0;
+        
+        const checkSystem = () => {
+            attempts++;
             
-            this.bindEvents();
-            this.loadSavedSearches();
-            this.updateUI();
-            this.initializeStatistics();
-            
-            // 初期検索実行
-            setTimeout(() => {
-                this.executeSearch();
-            }, 300);
-        },
+            if (window.unifiedSearch && window.unifiedSearch.isInitialized) {
+                console.log('✅ 統合検索システム連携確立');
+                
+                // 初期検索実行
+                if (Object.keys(initialParams).length > 0) {
+                    setTimeout(() => {
+                        window.unifiedSearch.executeUnifiedSearch('archive-initial', initialParams);
+                    }, 100);
+                }
+                
+                // アーカイブ固有の機能
+                initArchiveSpecificFeatures();
+                
+            } else if (attempts < maxAttempts) {
+                setTimeout(checkSystem, 100);
+            } else {
+                console.error('❌ 統合検索システムの初期化に失敗');
+                showFallbackMessage();
+            }
+        };
+        
+        checkSystem();
+    }
 
-        // 統計情報の初期化
-        initializeStatistics() {
+    // アーカイブページ固有機能
+    function initArchiveSpecificFeatures() {
+        // フィルターセクション切り替え
+        document.querySelectorAll('.filter-section-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.dataset.toggle;
+                const content = document.getElementById(section + '-content');
+                const icon = this.querySelector('.toggle-icon');
+                
+                if (content) {
+                    content.classList.toggle('hidden');
+                    if (icon) {
+                        icon.style.transform = content.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+                    }
+                }
+            });
+        });
+
+        // ビュー切り替え
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const view = this.dataset.view;
+                
+                document.querySelectorAll('.view-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-white', 'shadow');
+                });
+                
+                this.classList.add('active', 'bg-white', 'shadow');
+                
+                // ビューをURLに反映
+                const url = new URL(window.location);
+                url.searchParams.set('view', view);
+                window.history.replaceState({}, '', url);
+            });
+        });
+
+        // クイックフィルター
+        document.querySelectorAll('.quick-filter-pill').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const filter = this.dataset.filter;
+                
+                // アクティブ状態切り替え
+                document.querySelectorAll('.quick-filter-pill').forEach(b => {
+                    b.classList.remove('active', 'bg-indigo-100', 'border-indigo-300', 'bg-green-100', 'border-green-300', 'bg-yellow-100', 'border-yellow-300');
+                });
+                
+                this.classList.add('active');
+                
+                // 統合検索システムにフィルター送信
+                if (window.unifiedSearch) {
+                    const filterParams = {};
+                    
+                    switch(filter) {
+                        case 'active':
+                            filterParams.status = ['active'];
+                            this.classList.add('bg-green-100', 'border-green-300');
+                            break;
+                        case 'upcoming':
+                            filterParams.status = ['upcoming'];
+                            this.classList.add('bg-yellow-100', 'border-yellow-300');
+                            break;
+                        case 'high-amount':
+                            filterParams.amount = '1000+';
+                            break;
+                        default:
+                            this.classList.add('bg-indigo-100', 'border-indigo-300');
+                    }
+                    
+                    window.unifiedSearch.executeUnifiedSearch('quick-filter', filterParams);
+                }
+            });
+        });
+
+        // ソート順変更
+        const sortOrder = document.getElementById('sort-order');
+        if (sortOrder) {
+            sortOrder.addEventListener('change', function() {
+                if (window.unifiedSearch) {
+                    window.unifiedSearch.executeUnifiedSearch('sort', {
+                        orderby: this.value
+                    });
+                }
+            });
+        }
+
+        // 表示件数変更
+        const perPage = document.getElementById('per-page');
+        if (perPage) {
+            perPage.addEventListener('change', function() {
+                if (window.unifiedSearch) {
+                    window.unifiedSearch.executeUnifiedSearch('per-page', {
+                        posts_per_page: this.value
+                    });
+                }
+            });
+        }
+
+        // フィルタートグル
+        const filterToggle = document.getElementById('filter-toggle');
+        if (filterToggle) {
+            filterToggle.addEventListener('click', function() {
+                const filterPanel = document.getElementById('filter-panel');
+                if (filterPanel) {
+                    filterPanel.classList.toggle('hidden');
+                }
+            });
+        }
+
+        // エクスポートメニュー
+        const exportToggle = document.getElementById('export-toggle');
+        if (exportToggle) {
+            exportToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const menu = document.getElementById('export-menu');
+                if (menu) {
+                    menu.classList.toggle('hidden');
+                }
+            });
+        }
+
+        // エクスポートオプション
+        document.querySelectorAll('.export-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const format = this.dataset.format;
+                exportData(format);
+            });
+        });
+
+        // エクスポート処理
+        function exportData(format) {
+            console.log(`📥 ${format}形式でエクスポート`);
+            // TODO: エクスポート処理の実装
+        }
+
+        // フィルターリセット
+        const resetFilters = document.getElementById('reset-filters');
+        if (resetFilters) {
+            resetFilters.addEventListener('click', function() {
+                if (window.unifiedSearch) {
+                    window.unifiedSearch.clearSearch();
+                }
+            });
+        }
+
+        // 保存した検索
+        const savedSearchToggle = document.getElementById('saved-search-toggle');
+        if (savedSearchToggle) {
+            savedSearchToggle.addEventListener('click', function() {
+                // TODO: 保存した検索の表示処理
+                console.log('📡 保存した検索');
+            });
+        }
+    }
+
+    // フォールバック表示
+    function showFallbackMessage() {
+        const container = document.getElementById('gi-results-archive');
+        if (container) {
+            container.innerHTML = `
+                <div class="col-span-full bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
+                    <div class="text-yellow-600 mb-4">
+                        <i class="fas fa-exclamation-triangle text-4xl"></i>
+                    </div>
+                    <div class="text-gray-700 text-lg font-semibold mb-2">
+                        検索システムの初期化中です
+                    </div>
+                    <div class="text-gray-600">
+                        しばらくお待ちください...
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // 初期化開始
+    waitForUnifiedSystem();
+});
+</script>
+
+<?php get_footer(); ?>
             // 統計情報の取得と表示
             const totalGrants = document.getElementById('total-grants-count');
             const activeGrants = document.getElementById('active-grants-count');
@@ -1606,7 +1778,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="text-gray-600 mb-4">
                             ${message}
                         </div>
-                        <button onclick="window.ArchiveManager.executeSearch()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                        <button onclick="location.reload()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                             再試行
                         </button>
                     </div>
@@ -1666,14 +1838,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // グローバルに公開
-    window.ArchiveManager = ArchiveManager;
 
-    // 初期化実行
-    ArchiveManager.init();
-
-    console.log('✅ Grant Archive 初期化完了');
-});
 </script>
 
 <style>

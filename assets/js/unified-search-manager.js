@@ -72,47 +72,64 @@ class GIUnifiedSearchManager {
         });
     }
 
-    // 🔥 DOM要素キャッシュ（統一IDシステム）
+    // 🔥 DOM要素キャッシュ（統一IDシステム対応）
     cacheElements() {
         console.log('📦 DOM要素キャッシュ開始 - 統一IDシステム');
-
-        // ✅ 統一検索入力要素（単一ID）
-        this.elements.searchInput = document.getElementById(this.config.elements.searchInput);
-        if (!this.elements.searchInput) {
-            console.warn('⚠️ 検索入力要素が見つかりません:', this.config.elements.searchInput);
-        }
-
-        // ✅ 統一検索ボタン要素（単一ID）
-        this.elements.searchButton = document.getElementById(this.config.elements.searchButton);
-        if (!this.elements.searchButton) {
-            console.warn('⚠️ 検索ボタンが見つかりません:', this.config.elements.searchButton);
-        }
         
-        // ✅ 統一結果表示要素（単一ID）
-        this.elements.resultsContainer = document.getElementById(this.config.elements.resultsContainer);
-        if (!this.elements.resultsContainer) {
-            console.warn('⚠️ 結果表示コンテナが見つかりません:', this.config.elements.resultsContainer);
-        }
+        // メイン要素の取得（存在しない場合はdata-unified-targetから取得）
+        this.elements.searchInput = this.getUnifiedElement('searchInput');
+        this.elements.searchButton = this.getUnifiedElement('searchButton');
+        this.elements.resultsContainer = this.getUnifiedElement('resultsContainer');
+        this.elements.suggestionContainer = this.getUnifiedElement('suggestionContainer');
+        this.elements.voiceButton = this.getUnifiedElement('voiceButton');
+        this.elements.clearButton = this.getUnifiedElement('clearButton');
+        this.elements.loadingIndicator = this.getUnifiedElement('loadingIndicator');
+        this.elements.errorContainer = this.getUnifiedElement('errorContainer');
+        this.elements.pagination = this.getUnifiedElement('pagination');
+        this.elements.filterPanel = this.getUnifiedElement('filterPanel');
+        this.elements.filterToggle = this.getUnifiedElement('filterToggle');
         
-        // 🗑️ フィルター要素（統一IDシステムではシンプル化）
+        // フィルター要素キャッシュ
         this.elements.filters = {};
-        // フィルターはフォーム要素で直接アクセスするため、キャッシュ不要
-
-        // ✅ 統一その他要素（単一ID）
-        this.elements.loadingIndicator = document.getElementById(this.config.elements.loadingIndicator);
-        this.elements.errorContainer = document.getElementById(this.config.elements.errorContainer);
-        this.elements.suggestionContainer = document.getElementById(this.config.elements.suggestionContainer);
-        this.elements.voiceButton = document.getElementById(this.config.elements.voiceButton);
-        this.elements.clearButton = document.getElementById(this.config.elements.clearButton);
-        this.elements.pagination = document.getElementById(this.config.elements.pagination);
-        this.elements.filterPanel = document.getElementById(this.config.elements.filterPanel);
-        this.elements.filterToggle = document.getElementById(this.config.elements.filterToggle);
-
-        console.log('📦 要素キャッシュ完了:', {
+        
+        console.log('📦 統一要素キャッシュ完了:', {
             found: Object.keys(this.elements).filter(key => this.elements[key] !== null).length,
-            total: Object.keys(this.elements).length,
-            elements: Object.keys(this.elements)
+            total: Object.keys(this.elements).length
         });
+    }
+
+    // 統一要素取得メソッド
+    getUnifiedElement(elementType) {
+        const configId = this.config.elements[elementType];
+        if (!configId) return null;
+        
+        // 1. 設定IDで直接取得を試行
+        let element = document.getElementById(configId);
+        if (element) {
+            console.log(`✅ 直接取得成功: ${configId}`);
+            return element;
+        }
+        
+        // 2. data-unified-target属性を持つ要素から取得
+        const targetElements = document.querySelectorAll(`[data-unified-target="${configId}"]`);
+        if (targetElements.length > 0) {
+            console.log(`✅ 統一ターゲット取得: ${configId} (${targetElements.length}個)`);
+            
+            // 複数ある場合は最初の要素をメインとして使用し、他は同期対象とする
+            element = targetElements[0];
+            
+            // 同期対象要素を記録
+            if (targetElements.length > 1) {
+                this.syncElements = this.syncElements || {};
+                this.syncElements[elementType] = Array.from(targetElements);
+            }
+            
+            return element;
+        }
+        
+        // 3. フォールバック: 要素が見つからない場合
+        console.warn(`⚠️ 要素が見つかりません: ${configId}`);
+        return null;
     }
 
     // 🗑️ 削除: findFirstElement関数（統一IDシステムで不要）
@@ -841,8 +858,7 @@ class GIUnifiedSearchManager {
             }
         });
 
-        console.log('📡 イベントバインド完了');
-    }
+
 
     // イベントリスナー管理（メモリリーク防止）
     addEventListener(element, event, handler) {
