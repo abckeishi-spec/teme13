@@ -124,12 +124,12 @@ function gi_enqueue_scripts() {
     // 3. 統合検索マネージャー（コア機能 - 音声検索・サジェスト含む）
     wp_enqueue_script('gi-unified-search-manager', get_template_directory_uri() . '/assets/js/unified-search-manager.js', array('jquery', 'gi-search-config'), GI_THEME_VERSION, true);
     
-    // 4. レガシー互換性ブリッジ（テスト・デバッグ機能含む）
-    wp_enqueue_script('gi-legacy-bridge', get_template_directory_uri() . '/assets/js/legacy-bridge.js', array('jquery', 'gi-search-config', 'gi-unified-search-manager'), GI_THEME_VERSION, true);
+    // 🗑️ 削除: legacy-bridge.js（統一IDシステムで不要）
+    // wp_enqueue_script('gi-legacy-bridge', ...); // 削除済み
     
-    // 5. その他のテーマ機能
-    wp_enqueue_script('gi-main-js', get_template_directory_uri() . '/assets/js/main.js', array('jquery'), GI_THEME_VERSION, true);
+    // 4. その他のテーマ機能（統合システム以外）
     wp_enqueue_script('gi-mobile-menu', get_template_directory_uri() . '/assets/js/mobile-menu.js', array('jquery'), GI_THEME_VERSION, true);
+    // 🗑️ 削除: gi-main-js（統一システムに統合済み）
     
     // 統合検索システム用ローカライズ（Phase 4最適化版）
     $gi_ajax_data = array(
@@ -1488,7 +1488,11 @@ function gi_measure_search_performance($start_time, $params) {
     return $execution_time;
 }
 
-// 統合検索システム用アクション登録
+// 統合検索システム用アクション登録（統一命名）
+add_action('wp_ajax_gi_unified_search', 'gi_unified_search_handler');
+add_action('wp_ajax_nopriv_gi_unified_search', 'gi_unified_search_handler');
+
+// 🗑️ 旧名称との互換性維持（段階的移行用）
 add_action('wp_ajax_gi_unified_search_handler', 'gi_unified_search_handler');
 add_action('wp_ajax_nopriv_gi_unified_search_handler', 'gi_unified_search_handler');
 

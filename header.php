@@ -277,43 +277,44 @@ $popular_keywords = array(
             <!-- メイン検索 -->
             <div class="search-input-group">
                 <div class="relative flex-1">
+                    <!-- 🔥 統一検索入力（単一ID） -->
                     <input 
                         type="text" 
-                        id="gi-search-input" 
-                        data-source="header" 
-                        data-legacy-id="search-keyword"
-                        data-unified-id="gi-search-input-unified"
+                        id="gi-search-input-main" 
                         name="keyword"
                         class="gi-search-input search-input"
                         placeholder="キーワードで検索（例：IT導入補助金、ものづくり補助金）"
                         autocomplete="off"
                     >
+                    <!-- 🔥 統一クリアボタン -->
                     <button type="button" 
-                            id="gi-clear-button" 
-                            data-source="header" 
-                            data-legacy-id="clear-search"
+                            id="gi-clear-btn-main"
                             data-unified-id="gi-clear-btn" 
                             class="gi-clear-button clear-search-btn hidden">
                         <i class="fas fa-times"></i>
                     </button>
+                    <!-- 🔥 統一音声ボタン -->
                     <button type="button" 
-                            id="gi-voice-button" 
-                            data-source="header" 
-                            data-legacy-id="voice-search"
-                            data-unified-id="gi-voice-btn" 
+                            id="gi-voice-btn-main" 
                             class="gi-voice-button" 
                             title="音声検索">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
+                <!-- 🔥 統一検索ボタン -->
                 <button type="submit" 
-                        id="gi-search-btn-unified" data-source="header" data-legacy-id="execute-search" 
+                        id="gi-search-btn-main" 
                         class="search-submit-btn">
                     <span class="btn-text">検索</span>
                     <span class="btn-loading hidden">
                         <i class="fas fa-spinner animate-spin"></i>
                     </span>
                 </button>
+            </div>
+            
+            <!-- 🔥 統一サジェスト表示 -->
+            <div id="gi-suggestions-main" class="search-suggestions hidden">
+                <!-- 動的生成 -->
             </div>
 
             <!-- 人気キーワード -->
@@ -1120,10 +1121,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-// functions.phpで統合検索システムを読み込むようにする
-add_action('wp_footer', function() {
-    ?>
-    <script src="<?php echo get_template_directory_uri(); ?>/assets/js/unified-search.js"></script>
-    <?php
-}, 100);
+// 🗑️ 削除: 重複スクリプト読み込み（functions.phpで既に読み込み済み）
+// スクリプトはwp_enqueue_scriptで管理されています
 ?>

@@ -8,31 +8,16 @@
 window.GISearchConfig = {
     // 統一DOM要素ID
     elements: {
-        // 検索入力（統一ID体系）
-        searchInputs: [
-            'gi-search-input',          // 統一ID（推奨）
-            'gi-search-input-unified',  // 移行期互換
-            'grant-search',             // レガシー互換
-            'search-keyword-input',     // レガシー互換
-            'search-keyword'            // レガシー互換
-        ],
+        // 🔥 統一検索入力（単一ID）
+        searchInput: 'gi-search-input-main',
         
-        // 検索ボタン
-        searchButtons: [
-            'gi-search-button',         // 統一ID（推奨）
-            'gi-search-btn-unified',    // 移行期互換
-            'search-btn',               // レガシー互換
-            'search-submit-btn',        // レガシー互換
-            'execute-search'            // レガシー互換
-        ],
         
-        // 結果表示
-        resultsContainers: [
-            'gi-search-results',        // 統一ID（推奨）
-            'gi-results-unified',       // 移行期互換
-            'grants-display',           // レガシー互換
-            'search-results-preview'    // レガシー互換
-        ],
+        // 🔥 統一検索ボタン（単一ID）
+        searchButton: 'gi-search-btn-main',
+        
+        
+        // 🔥 統一結果表示（単一ID）
+        resultsContainer: 'gi-results-main',
         
         // フィルター
         filters: {
@@ -45,24 +30,24 @@ window.GISearchConfig = {
             success_rate: ['filter-success-rate', 'gi-filter-success-rate']
         },
         
-        // その他の要素（統一ID体系）
-        loadingIndicator: ['gi-loading-indicator', 'gi-loading', 'search-loading'],
-        errorContainer: ['gi-error-container', 'gi-error', 'search-error'],
-        suggestionContainer: ['gi-suggestion-container', 'gi-suggestions', 'search-suggestions'],
-        voiceButton: ['gi-voice-button', 'gi-voice-btn', 'voice-search-btn', 'voice-search'],
-        clearButton: ['gi-clear-button', 'gi-clear-btn', 'search-clear'],
+        // 🔥 統一その他要素（単一ID）
+        loadingIndicator: 'gi-loading-main',
+        errorContainer: 'gi-error-main',
+        suggestionContainer: 'gi-suggestions-main',
+        voiceButton: 'gi-voice-btn-main',
+        clearButton: 'gi-clear-btn-main',
         
-        // ページネーション
-        pagination: ['gi-pagination', 'search-pagination'],
+        // 🔥 統一ページネーション（単一ID）
+        pagination: 'gi-pagination-main',
         
-        // フィルターパネル
-        filterPanel: ['gi-filter-panel', 'advanced-filters'],
-        filterToggle: ['gi-filter-toggle', 'filter-toggle-btn']
+        // 🔥 統一フィルターパネル（単一ID）
+        filterPanel: 'gi-filter-panel-main',
+        filterToggle: 'gi-filter-toggle-main'
     },
     
     // AJAX設定（統一されたエンドポイント名）
     ajax: {
-        action: 'gi_unified_search_handler', // functions.phpのアクション名と完全一致
+        action: 'gi_unified_search', // ✅ 統一された標準アクション名
         timeout: 30000,
         retryLimit: 3,
         retryDelay: 1000

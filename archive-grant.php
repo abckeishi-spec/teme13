@@ -125,11 +125,10 @@ get_header();
                         <div class="search-input-group relative">
                             <div class="search-input-wrapper relative">
                                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <!-- 🔥 統一検索入力（単一ID） -->
                                 <input 
                                     type="text" 
-                                    id="gi-search-input" 
-                                    data-legacy-id="grant-search" 
-                                    data-unified-id="gi-search-input-unified"
+                                    id="gi-search-input-main"
                                     class="gi-search-input search-input w-full pl-12 pr-32 py-4 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
                                     placeholder="キーワード、業種、地域などで検索..."
                                     value="<?php echo esc_attr($search_params['search']); ?>"
@@ -687,9 +686,8 @@ get_header();
 
                     <!-- 助成金リスト -->
                     <div id="grants-container" class="grants-container">
-                        <div id="gi-search-results" 
-                             data-legacy-id="grants-display" 
-                             data-unified-id="gi-results-unified" 
+                        <!-- 🔥 統一結果表示（単一ID） -->
+                        <div id="gi-results-main"
                              class="gi-search-results grants-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             <!-- 初期ローディング表示 -->
                             <div class="initial-loading col-span-full">

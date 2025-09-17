@@ -72,46 +72,41 @@ class GIUnifiedSearchManager {
         });
     }
 
-    // DOM要素キャッシュ（フェイルセーフ付き）
+    // 🔥 DOM要素キャッシュ（統一IDシステム）
     cacheElements() {
-        console.log('📦 DOM要素キャッシュ開始');
+        console.log('📦 DOM要素キャッシュ開始 - 統一IDシステム');
 
-        // 検索入力要素（優先度順で検索）
-        this.elements.searchInput = this.findFirstElement(this.config.elements.searchInputs);
+        // ✅ 統一検索入力要素（単一ID）
+        this.elements.searchInput = document.getElementById(this.config.elements.searchInput);
         if (!this.elements.searchInput) {
-            console.warn('⚠️ 検索入力要素が見つかりません');
+            console.warn('⚠️ 検索入力要素が見つかりません:', this.config.elements.searchInput);
         }
 
-        // 検索ボタン要素
-        this.elements.searchButton = this.findFirstElement(this.config.elements.searchButtons);
+        // ✅ 統一検索ボタン要素（単一ID）
+        this.elements.searchButton = document.getElementById(this.config.elements.searchButton);
         if (!this.elements.searchButton) {
-            console.warn('⚠️ 検索ボタンが見つかりません');
+            console.warn('⚠️ 検索ボタンが見つかりません:', this.config.elements.searchButton);
         }
         
-        // 結果表示要素
-        this.elements.resultsContainer = this.findFirstElement(this.config.elements.resultsContainers);
+        // ✅ 統一結果表示要素（単一ID）
+        this.elements.resultsContainer = document.getElementById(this.config.elements.resultsContainer);
         if (!this.elements.resultsContainer) {
-            console.warn('⚠️ 結果表示コンテナが見つかりません');
+            console.warn('⚠️ 結果表示コンテナが見つかりません:', this.config.elements.resultsContainer);
         }
         
-        // フィルター要素
+        // 🗑️ フィルター要素（統一IDシステムではシンプル化）
         this.elements.filters = {};
-        Object.keys(this.config.elements.filters).forEach(filterType => {
-            this.elements.filters[filterType] = this.findFirstElement(this.config.elements.filters[filterType]);
-            if (!this.elements.filters[filterType]) {
-                console.warn(`⚠️ フィルター要素が見つかりません: ${filterType}`);
-            }
-        });
+        // フィルターはフォーム要素で直接アクセスするため、キャッシュ不要
 
-        // その他の要素
-        this.elements.loadingIndicator = this.findFirstElement(this.config.elements.loadingIndicator);
-        this.elements.errorContainer = this.findFirstElement(this.config.elements.errorContainer);
-        this.elements.suggestionContainer = this.findFirstElement(this.config.elements.suggestionContainer);
-        this.elements.voiceButton = this.findFirstElement(this.config.elements.voiceButton);
-        this.elements.clearButton = this.findFirstElement(this.config.elements.clearButton);
-        this.elements.pagination = this.findFirstElement(this.config.elements.pagination);
-        this.elements.filterPanel = this.findFirstElement(this.config.elements.filterPanel);
-        this.elements.filterToggle = this.findFirstElement(this.config.elements.filterToggle);
+        // ✅ 統一その他要素（単一ID）
+        this.elements.loadingIndicator = document.getElementById(this.config.elements.loadingIndicator);
+        this.elements.errorContainer = document.getElementById(this.config.elements.errorContainer);
+        this.elements.suggestionContainer = document.getElementById(this.config.elements.suggestionContainer);
+        this.elements.voiceButton = document.getElementById(this.config.elements.voiceButton);
+        this.elements.clearButton = document.getElementById(this.config.elements.clearButton);
+        this.elements.pagination = document.getElementById(this.config.elements.pagination);
+        this.elements.filterPanel = document.getElementById(this.config.elements.filterPanel);
+        this.elements.filterToggle = document.getElementById(this.config.elements.filterToggle);
 
         console.log('📦 要素キャッシュ完了:', {
             found: Object.keys(this.elements).filter(key => this.elements[key] !== null).length,
@@ -120,31 +115,8 @@ class GIUnifiedSearchManager {
         });
     }
 
-    // 要素検索ヘルパー（フェイルセーフ機能強化）
-    findFirstElement(ids) {
-        if (!Array.isArray(ids)) {
-            ids = [ids];
-        }
-
-        for (const id of ids) {
-            if (!id) continue;
-            
-            try {
-                const element = document.getElementById(id);
-                if (element) {
-                    console.log(`✓ 要素発見: ${id}`);
-                    return element;
-                }
-            } catch (error) {
-                console.warn(`❌ 要素検索エラー (${id}):`, error);
-            }
-        }
-        
-        if (this.config.debug.enabled) {
-            console.warn(`❌ 要素が見つかりません: ${ids.join(', ')}`);
-        }
-        return null;
-    }
+    // 🗑️ 削除: findFirstElement関数（統一IDシステムで不要）
+    // 統一IDシステムでは document.getElementById() を直接使用
 
     // 既存システム統合（レガシーブリッジ）
     async integrateLegacySystems() {
